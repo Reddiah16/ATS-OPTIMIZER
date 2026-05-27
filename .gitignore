@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# Uploads / Logs
+backend/uploads/
+backend/logs/
+
+# Node
+node_modules/
+.next/
+out/
+.env.local
+npm-debug.log*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Database
+*.db
+*.sqlite3
+
+# Docker volumes
+postgres_data/
