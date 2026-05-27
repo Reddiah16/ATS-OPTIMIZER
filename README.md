@@ -12,7 +12,7 @@ A production-ready, full-stack SaaS application that analyzes resumes against jo
 | Backend       | FastAPI, Python 3.11, SQLAlchemy 2.0                |
 | Database      | PostgreSQL + Alembic migrations                     |
 | Auth          | JWT (python-jose) + bcrypt password hashing         |
-| AI / NLP      | OpenAI GPT-4o-mini, custom NLP keyword engine       |
+| AI / NLP      | Groq + Llama 3, custom NLP keyword engine       |
 | File Parsing  | pdfplumber (PDF), python-docx (DOCX)                |
 | Deployment    | Vercel (frontend) + Render/Railway (backend)        |
 
@@ -162,7 +162,7 @@ pip install -r requirements.txt
 
 # Copy and fill env vars
 cp .env.example .env
-# Edit .env: set DATABASE_URL and OPENAI_API_KEY
+# Edit .env: set DATABASE_URL and GROQ_API_KEY
 
 # Run database migrations
 alembic upgrade head
