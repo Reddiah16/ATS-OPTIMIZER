@@ -1,8 +1,24 @@
 # ResumeIQ — AI Resume Analyzer & ATS Optimizer
 
-A production-ready, full-stack SaaS application that analyzes resumes against job descriptions using a custom ATS scoring engine and OpenAI-powered suggestions — built entirely from scratch with no Backend-as-a-Service.
+A production-ready, full-stack SaaS application that analyzes resumes against job descriptions using a custom ATS scoring engine, Groq-powered AI feedback, and modern authentication workflows powered by Supabase Auth and Google OAuth.
 
 ---
+
+## Features
+
+- AI-powered ATS resume analysis
+- Keyword and skill matching engine
+- Resume score breakdown visualization
+- AI-generated resume improvement suggestions
+- PDF report export
+- Resume upload with drag-and-drop support
+- Google OAuth authentication
+- Responsive dashboard and analytics UI
+- Analysis history tracking
+- Secure authentication and protected routes
+
+---
+
 
 ## Tech Stack
 
@@ -12,7 +28,7 @@ A production-ready, full-stack SaaS application that analyzes resumes against jo
 | Backend       | FastAPI, Python 3.11, SQLAlchemy 2.0                |
 | Database      | PostgreSQL + Alembic migrations                     |
 | Auth          | Supabase Auth, Google OAuth, JWT session management |
-| AI / NLP      | Groq + Llama 3, custom NLP keyword engine           |
+| AI / NLP      | Groq API (Llama 3), custom NLP keyword engine       |
 | File Parsing  | pdfplumber (PDF), python-docx (DOCX)                |
 | Deployment    | Vercel (frontend) + Render/Railway (backend)        |
 
@@ -24,61 +40,57 @@ A production-ready, full-stack SaaS application that analyzes resumes against jo
 ats-optimizer/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # FastAPI entry point, CORS, error handlers
-│   │   ├── config.py            # Pydantic settings from .env
+│   │   ├── main.py                     # FastAPI entry point, middleware, CORS
+│   │   ├── config.py                   # Environment & application settings
 │   │   ├── database/
-│   │   │   └── session.py       # SQLAlchemy engine, SessionLocal, get_db()
-│   │   ├── models/              # SQLAlchemy ORM models
-│   │   │   ├── user.py
-│   │   │   ├── resume.py
-│   │   │   └── analysis.py
-│   │   ├── schemas/             # Pydantic request/response schemas
-│   │   │   ├── user.py
-│   │   │   ├── resume.py
-│   │   │   └── analysis.py
-│   │   ├── routers/             # FastAPI route handlers
-│   │   │   ├── auth.py          # POST /auth/register, /auth/login, GET /auth/me
-│   │   │   ├── resume.py        # POST /resumes/upload, GET/DELETE /resumes/{id}
-│   │   │   └── analysis.py      # POST /analysis/, GET /analysis/history, /{id}
-│   │   ├── services/            # Business logic layer
-│   │   │   ├── auth_service.py  # Registration, login, token generation
-│   │   │   ├── resume_service.py# File upload, validation, text extraction
-│   │   │   ├── ats_service.py   # Custom ATS scoring algorithm
-│   │   │   ├── ai_service.py    # OpenAI GPT-4 integration
-│   │   │   └── analysis_service.py # Orchestrates full analysis pipeline
-│   │   ├── utils/
-│   │   │   ├── jwt.py           # Token creation/verification
-│   │   │   ├── password.py      # bcrypt hashing
-│   │   │   └── file_parser.py   # PDF/DOCX text extraction
-│   │   └── middleware/
-│   │       └── auth.py          # get_current_user dependency injection
-│   ├── alembic/                 # Database migrations
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   └── render.yaml
+│   │   │   └── session.py              # SQLAlchemy database session setup
+│   │   ├── middleware/
+│   │   │   └── auth.py                 # Route protection & auth middleware
+│   │   ├── models/                     # SQLAlchemy ORM database models
+│   │   ├── routers/
+│   │   │   ├── auth.py                 # Authentication & OAuth routes
+│   │   │   ├── resume.py               # Resume upload APIs
+│   │   │   └── analysis.py             # ATS analysis APIs
+│   │   ├── schemas/                    # Pydantic validation schemas
+│   │   ├── services/
+│   │   │   ├── ai_service.py           # Groq Llama 3 AI integration
+│   │   │   ├── ats_service.py          # ATS scoring algorithm
+│   │   │   ├── analysis_service.py     # Full resume analysis pipeline
+│   │   │   ├── auth_service.py         # Supabase auth/session handling
+│   │   │   └── resume_service.py       # Resume parsing & extraction logic
+│   │   └── utils/                      # Shared helper utilities
+│   ├── alembic/                        # PostgreSQL database migrations
+│   ├── uploads/                        # Uploaded resumes storage
+│   ├── Dockerfile                      # Backend containerization
+│   └── render.yaml                     # Render deployment configuration
 │
-└── frontend/
-    ├── src/
-    │   ├── app/                 # Next.js App Router pages
-    │   │   ├── page.tsx         # Landing page
-    │   │   ├── login/           # Auth pages
-    │   │   ├── register/
-    │   │   ├── dashboard/       # User dashboard with stats
-    │   │   ├── upload/          # Upload + job description form
-    │   │   ├── analysis/[id]/   # Full analysis results
-    │   │   └── history/         # Paginated analysis history
-    │   ├── components/
-    │   │   ├── Navbar.tsx
-    │   │   ├── ATSScoreGauge.tsx # Animated SVG score gauge
-    │   │   ├── KeywordAnalysis.tsx
-    │   │   └── AISuggestions.tsx
-    │   ├── lib/
-    │   │   ├── api.ts           # Axios client with auth interceptors
-    │   │   └── auth.tsx         # Auth context provider + useAuth hook
-    │   └── types/               # TypeScript interfaces
-    ├── package.json
-    ├── tailwind.config.js
-    └── vercel.json
+├── frontend/
+│   ├── src/
+│   │   ├── app/                        # Next.js App Router pages
+│   │   ├── components/
+│   │   │   ├── auth/                   # Login/register UI components
+│   │   │   ├── upload/                 # Resume upload workflow components
+│   │   │   ├── ui/                     # Reusable UI primitives
+│   │   │   ├── ATSScoreGauge.tsx       # Animated ATS score visualization
+│   │   │   ├── AISuggestions.tsx       # AI-generated resume feedback
+│   │   │   ├── ExportReport.tsx        # PDF export functionality
+│   │   │   └── ScoreRadarChart.tsx     # Skill/radar analytics chart
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx         # Global authentication state
+│   │   ├── hooks/
+│   │   │   ├── useAuth.ts              # Authentication hook
+│   │   │   └── useAuthRedirect.ts      # Protected route redirection
+│   │   ├── lib/
+│   │   │   ├── api.ts                  # Backend API communication
+│   │   │   ├── supabase.ts             # Supabase client configuration
+│   │   │   └── utils.ts                # Shared frontend utilities
+│   │   └── middleware.ts               # Route-level protection middleware
+│   ├── Dockerfile                      # Frontend containerization
+│   └── vercel.json                     # Vercel deployment configuration
+│
+├── docker-compose.yml                  # Local full-stack container setup
+├── README.md                           # Project documentation
+└── .gitignore                          # Ignored files & secrets
 ```
 
 ---
@@ -102,7 +114,7 @@ The engine uses:
 
 ---
 
-## AI Features (OpenAI GPT-4o-mini)
+## AI Features (Groq + Llama 3)
 
 1. **Resume Feedback** — Structured JSON response with:
    - 3–5 strengths and weaknesses
@@ -111,7 +123,6 @@ The engine uses:
 
 2. **Bullet Point Rewriter** — Transforms weak bullets like *"Worked on APIs"* into *"Developed 12 RESTful APIs using FastAPI and PostgreSQL, reducing average response time by 40%"*
 
-3. **Cover Letter Generator** — Tailored cover letter from resume + job description (bonus endpoint)
 
 ---
 
@@ -196,7 +207,7 @@ App available at: http://localhost:3000
 ```bash
 # From project root
 cp backend/.env.example backend/.env
-# Set OPENAI_API_KEY in backend/.env
+# Set GROQ_API_KEY in backend/.env
 
 docker-compose up --build
 ```
@@ -212,7 +223,7 @@ DATABASE_URL=postgresql://user:password@localhost:5432/ats_optimizer
 SECRET_KEY=your-32+-character-secret-key
 ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=1440
-OPENAI_API_KEY=sk-...
+GROQ_API_KEY=gsk-...
 UPLOAD_DIR=uploads
 MAX_FILE_SIZE_MB=10
 FRONTEND_URL=http://localhost:3000
@@ -256,7 +267,7 @@ npx vercel --prod
 
 ## Security Implementation
 
-- **JWT authentication** — HS256 signed tokens with expiry
+- **Supabase Auth + Google OAuth** — Secure authentication and session management
 - **bcrypt password hashing** — salted, work factor 12
 - **Protected routes** — `get_current_user` FastAPI dependency on all auth routes
 - **CORS configuration** — Whitelist-only origins
@@ -319,16 +330,15 @@ CREATE TABLE analyses (
 
 ---
 
-## Optional Advanced Features
+## Future Enhancements
 
-The codebase is architected to easily support:
+The architecture is designed to support additional advanced features in future iterations:
 
-- **Cover Letter Generation** — `ai_service.generate_cover_letter()` already implemented
-- **Interview Question Generation** — Add `POST /analysis/{id}/interview-questions` endpoint
-- **Skill Gap Analysis** — Cross-reference missing skills with learning resources
-- **Multi-Job Comparison** — Compare ATS scores across multiple job descriptions
-- **Resume PDF Export** — Use `reportlab` or `weasyprint` to export reports
-- **Recruiter Dashboard** — Add `role` field to users, scope recruiter views
+- **Skill Gap Analysis** — Recommend learning resources for missing skills
+- **Multi-Resume Comparison** — Compare ATS scores across multiple resumes
+- **Recruiter Dashboard** — Recruiter-side candidate screening workflow
+- **Advanced AI Suggestions** — Personalized resume optimization recommendations
+- **Resume Version Tracking** — Save and compare resume revisions
 
 ---
 
