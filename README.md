@@ -11,8 +11,8 @@ A production-ready, full-stack SaaS application that analyzes resumes against jo
 | Frontend      | Next.js 14, React 18, TypeScript, Tailwind CSS      |
 | Backend       | FastAPI, Python 3.11, SQLAlchemy 2.0                |
 | Database      | PostgreSQL + Alembic migrations                     |
-| Auth          | JWT (python-jose) + bcrypt password hashing         |
-| AI / NLP      | Groq + Llama 3, custom NLP keyword engine       |
+| Auth          | Supabase Auth, Google OAuth, JWT session management |
+| AI / NLP      | Groq + Llama 3, custom NLP keyword engine           |
 | File Parsing  | pdfplumber (PDF), python-docx (DOCX)                |
 | Deployment    | Vercel (frontend) + Render/Railway (backend)        |
 
