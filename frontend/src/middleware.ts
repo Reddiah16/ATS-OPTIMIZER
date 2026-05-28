@@ -18,12 +18,12 @@ function isAuthRoute(pathname: string): boolean {
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Check for Supabase session cookies
   const cookies = request.cookies.getAll();
-  const hasSession = cookies.some(
-    (cookie) => cookie.name.startsWith('sb-') && cookie.name.endsWith('-auth-token')
-  );
+
+  // Check custom access_token OR Supabase session cookie
+  const hasSession =
+    cookies.some((c) => c.name === "access_token" && c.value) ||
+    cookies.some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
 
   if (isProtectedPath(pathname) && !hasSession) {
     const loginUrl = new URL("/login", request.url);
