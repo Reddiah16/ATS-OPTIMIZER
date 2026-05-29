@@ -15,7 +15,7 @@ class AIService:
             api_key=settings.GROQ_API_KEY
         )
 
-        self.model = "llama3-8b-8192"
+        self.model = "llama-3.1-8b-instant"
 
     # =========================
     # RESUME FEEDBACK
