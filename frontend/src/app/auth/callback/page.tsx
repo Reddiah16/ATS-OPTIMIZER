@@ -30,10 +30,16 @@ export default function AuthCallback() {
 
         let supabaseAccessToken: string | null = null
 
-        // ── PKCE flow: ?code= in query params ──
-        const code = urlParams.get('code')
+        // ── 1. Implicit flow: direct access token extraction from hash ──
+        const hashAccessToken = hashParams.get('access_token')
 
-        if (code) {
+        if (hashAccessToken) {
+          setLoadingStep('Accessing your authorization session...')
+          supabaseAccessToken = hashAccessToken
+        }
+        // ── 2. PKCE flow: ?code= in query params ──
+        else if (urlParams.get('code')) {
+          const code = urlParams.get('code')!
           setLoadingStep('Exchanging authorization code...')
           const { data, error } = await supabase.auth.exchangeCodeForSession(code)
           if (error || !data.session?.access_token) {
@@ -42,8 +48,9 @@ export default function AuthCallback() {
             return
           }
           supabaseAccessToken = data.session.access_token
-        } else {
-          // ── Implicit flow: session already in hash / storage ──
+        }
+        // ── 3. Fallback: retrieve session from client ──
+        else {
           setLoadingStep('Retrieving existing Supabase session...')
           const { data: { session }, error } = await supabase.auth.getSession()
           if (error || !session?.access_token) {
