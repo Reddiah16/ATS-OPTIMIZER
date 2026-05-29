@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -48,21 +48,34 @@ app = FastAPI(
 )
 
 # ========================
-# CORS
+# CORS (Dynamic Browser-Safe Whitelisting Middleware)
 # ========================
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        settings.FRONTEND_URL,
-        "http://localhost:3000",
-        "https://ats-optimizer-cpgs.vercel.app",
-        "https://ats-optimizer-rust.vercel.app",
-        "https://ats-optimizer.vercel.app",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.middleware("http")
+async def dynamic_cors_middleware(request: Request, call_next):
+    origin = request.headers.get("origin")
+    
+    # Preflight OPTIONS requests
+    if request.method == "OPTIONS":
+        response = Response(status_code=204)
+        if origin:
+            if any(x in origin for x in ["localhost", "127.0.0.1", "vercel.app", "onrender.com"]):
+                response.headers["Access-Control-Allow-Origin"] = origin
+                response.headers["Access-Control-Allow-Credentials"] = "true"
+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
+                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, apikey"
+                response.headers["Access-Control-Max-Age"] = "86400"
+        return response
+
+    response = await call_next(request)
+    
+    if origin:
+        if any(x in origin for x in ["localhost", "127.0.0.1", "vercel.app", "onrender.com"]):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+            response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, HEAD, PATCH"
+            response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, X-Requested-With, apikey"
+            
+    return response
 
 # ========================
 # Exception Handlers
