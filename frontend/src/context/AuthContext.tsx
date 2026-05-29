@@ -56,41 +56,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mountedRef.current = true;
 
-    // Listen for Supabase auth changes (handles Google OAuth)
+    // Listen for Supabase auth changes (handles Google OAuth session refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.access_token) {
-          setAccessToken(session.access_token);
-          try {
-            const { data } = await authApi.getMe();
-            if (mountedRef.current) {
-              setUser(data);
-              setAuthError(null);
-              setIsLoading(false);
-            }
-          } catch {
-            if (mountedRef.current) {
-              clearAccessToken();
-              setUser(null);
-              setIsLoading(false);
-            }
+      async (_event, _session) => {
+        // The callback page (/auth/callback) is responsible for calling
+        // /auth/google and setting the backend JWT cookie.
+        // Here we just pick up whatever backend token is already stored.
+        const token = getAccessToken();
+        if (!token || !isTokenValid()) {
+          if (mountedRef.current) {
+            setUser(null);
+            setIsLoading(false);
           }
-        } else {
-          const token = getAccessToken();
-          if (!token) {
-            if (mountedRef.current) setIsLoading(false);
-            return;
-          }
-          refreshUser()
-            .catch((err: unknown) => {
-              if (mountedRef.current) {
-                setAuthError(err instanceof Error ? err.message : "Auth error");
-              }
-            })
-            .finally(() => {
-              if (mountedRef.current) setIsLoading(false);
-            });
+          return;
         }
+        refreshUser()
+          .catch((err: unknown) => {
+            if (mountedRef.current) {
+              setAuthError(err instanceof Error ? err.message : "Auth error");
+            }
+          })
+          .finally(() => {
+            if (mountedRef.current) setIsLoading(false);
+          });
       }
     );
 
@@ -105,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setAccessToken(data.access_token);
     setUser(data.user);
     setAuthError(null);
+    setIsLoading(false);
   }, []);
 
   // ── Auth actions ──────────────────────────────────────────────────────────

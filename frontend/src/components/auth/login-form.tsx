@@ -122,7 +122,7 @@ export function LoginForm() {
          await supabase.auth.signInWithOAuth({
   provider: "google",
   options: {
-    redirectTo: `https://ats-optimizer-cpgs.vercel.app/auth/callback`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://ats-optimizer-cpgs.vercel.app'}/auth/callback`,
     queryParams: {
       access_type: 'offline',
       prompt: 'consent',
