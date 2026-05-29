@@ -10,39 +10,24 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      // Exchange the code in the URL for a session
-      const { data, error } = await supabase.auth.exchangeCodeForSession(
-        window.location.href
-      )
-
+      // Wait for supabase to process the callback automatically
+      const { data: { session }, error } = await supabase.auth.getSession()
+      
       if (error) {
         console.error('Auth error:', error)
         router.push('/login')
         return
       }
 
-      if (data?.session?.access_token) {
-        Cookies.set('access_token', data.session.access_token, {
+      if (session?.access_token) {
+        Cookies.set('access_token', session.access_token, {
           expires: 1,
           sameSite: 'lax',
           secure: true,
         })
         router.push('/dashboard')
       } else {
-        // Wait a moment for session to be set
-        setTimeout(async () => {
-          const { data: sessionData } = await supabase.auth.getSession()
-          if (sessionData?.session?.access_token) {
-            Cookies.set('access_token', sessionData.session.access_token, {
-              expires: 1,
-              sameSite: 'lax',
-              secure: true,
-            })
-            router.push('/dashboard')
-          } else {
-            router.push('/login')
-          }
-        }, 1000)
+        router.push('/login')
       }
     }
 
