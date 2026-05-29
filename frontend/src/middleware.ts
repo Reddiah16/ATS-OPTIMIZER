@@ -20,10 +20,9 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const cookies = request.cookies.getAll();
 
-  // Check custom access_token OR Supabase session cookie
-  const hasSession =
-    cookies.some((c) => c.name === "access_token" && c.value) ||
-    cookies.some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
+  // Only rely on the backend access_token to determine session validity.
+  // Relying on Supabase cookie causes infinite redirect loops when the backend token expires.
+  const hasSession = cookies.some((c) => c.name === "access_token" && c.value);
 
   if (isProtectedPath(pathname) && !hasSession) {
     const loginUrl = new URL("/login", request.url);

@@ -48,6 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (mountedRef.current) {
         clearAccessToken();
         setUser(null);
+        // Ensure Supabase cookie is also cleared to prevent middleware infinite loop
+        supabase.auth.signOut().catch(() => {});
       }
       throw new Error("Session expired. Please sign in again.");
     }

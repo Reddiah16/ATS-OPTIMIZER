@@ -37,8 +37,8 @@ export function ProtectedRoute({
   }
 
   if (!user) {
-    // Render nothing while redirect fires
-    return null;
+    // Render loading state while redirect fires
+    return <PageLoader label="Redirecting to login…" />;
   }
 
   return <>{children}</>;
