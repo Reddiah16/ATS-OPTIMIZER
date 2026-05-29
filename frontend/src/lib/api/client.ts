@@ -7,7 +7,7 @@ import {
 import type { ApiErrorBody } from "@/types/api";
 
 export const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+  process.env.NEXT_PUBLIC_API_URL || "https://ats-optimizer-3m4f.onrender.com/api/v1";
 
 // ─── Axios instance ───────────────────────────────────────────────────────────
 export const api: AxiosInstance = axios.create({

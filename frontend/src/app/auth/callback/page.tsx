@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { setAccessToken } from '@/lib/auth'
 
 const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'https://ats-optimizer-3m4f.onrender.com/api/v1'
 
 export default function AuthCallback() {
   const router = useRouter()
