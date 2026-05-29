@@ -16,10 +16,22 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        const urlParams = new URLSearchParams(window.location.search)
+        const hashParams = new URLSearchParams(window.location.hash.substring(1))
+
+        const errorParam = urlParams.get('error') || hashParams.get('error')
+        const errorDescParam = urlParams.get('error_description') || hashParams.get('error_description')
+
+        if (errorParam) {
+          console.error('Supabase redirect error:', errorParam, errorDescParam)
+          setErrorMsg(`Supabase Auth Error: ${errorDescParam || errorParam}`)
+          return
+        }
+
         let supabaseAccessToken: string | null = null
 
-        // ── PKCE flow: ?code= in query params (default for @supabase/ssr) ──
-        const code = new URLSearchParams(window.location.search).get('code')
+        // ── PKCE flow: ?code= in query params ──
+        const code = urlParams.get('code')
 
         if (code) {
           setLoadingStep('Exchanging authorization code...')
