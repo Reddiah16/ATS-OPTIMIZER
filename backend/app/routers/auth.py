@@ -40,19 +40,32 @@ async def google_auth(
     """Exchange Supabase token for backend JWT."""
     supabase_token = authorization.replace("Bearer ", "")
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(
-            f"{settings.SUPABASE_URL}/auth/v1/user",
-            headers={
-                "Authorization": f"Bearer {supabase_token}",
-                "apikey": settings.SUPABASE_ANON_KEY
-            }
+    if not settings.SUPABASE_URL or not settings.SUPABASE_ANON_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Supabase credentials are not configured on the backend server. Please verify your Render environment variables."
+        )
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{settings.SUPABASE_URL}/auth/v1/user",
+                headers={
+                    "Authorization": f"Bearer {supabase_token}",
+                    "apikey": settings.SUPABASE_ANON_KEY
+                },
+                timeout=15.0
+            )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Failed to connect to Supabase Auth Server: {str(e)}"
         )
 
     if response.status_code != 200:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Supabase token"
+            detail=f"Invalid Supabase token: {response.text}"
         )
 
     supabase_user = response.json()
