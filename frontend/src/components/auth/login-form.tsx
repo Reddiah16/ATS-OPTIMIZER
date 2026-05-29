@@ -118,17 +118,20 @@ export function LoginForm() {
 
         setGoogleLoading(true);
 
-        const { error } =
-         await supabase.auth.signInWithOAuth({
-  provider: "google",
-  options: {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://ats-optimizer-cpgs.vercel.app'}/auth/callback`,
-    queryParams: {
-      access_type: 'offline',
-      prompt: 'consent',
-    },
-  },
-});
+        const callbackUrl = typeof window !== "undefined"
+          ? `${window.location.origin}/auth/callback`
+          : `${process.env.NEXT_PUBLIC_SITE_URL || "https://ats-optimizer-cpgs.vercel.app"}/auth/callback`;
+
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: "google",
+          options: {
+            redirectTo: callbackUrl,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            },
+          },
+        });
 
         if (error) {
 
