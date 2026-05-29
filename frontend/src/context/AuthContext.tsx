@@ -58,34 +58,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mountedRef.current = true;
 
-    // Listen for Supabase auth changes (handles Google OAuth session refresh)
+    // 1. Immediately hydrate the session from our own backend token
+    // This prevents the app from hanging while waiting for Supabase to initialize
+    const token = getAccessToken();
+    if (token && isTokenValid()) {
+      refreshUser().finally(() => {
+        if (mountedRef.current) setIsLoading(false);
+      });
+    } else {
+      setIsLoading(false);
+    }
+
+    // 2. Listen for Supabase auth changes (handles Google OAuth session refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, _session) => {
-        // If we are on the callback page, let the callback page handle setting the token and loading state
-        if (typeof window !== "undefined" && window.location.pathname === "/auth/callback") {
+      async (event, _session) => {
+        // Only react to actual auth state changes, ignore the INITIAL_SESSION event
+        // since we already handled initialization above.
+        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT") {
           return;
         }
 
-        // The callback page (/auth/callback) is responsible for calling
-        // /auth/google and setting the backend JWT cookie.
-        // Here we just pick up whatever backend token is already stored.
-        const token = getAccessToken();
-        if (!token || !isTokenValid()) {
+        const currentToken = getAccessToken();
+        if (!currentToken || !isTokenValid()) {
           if (mountedRef.current) {
             setUser(null);
             setIsLoading(false);
           }
           return;
         }
-        refreshUser()
-          .catch((err: unknown) => {
-            if (mountedRef.current) {
-              setAuthError(err instanceof Error ? err.message : "Auth error");
-            }
-          })
-          .finally(() => {
-            if (mountedRef.current) setIsLoading(false);
-          });
+        
+        refreshUser().catch((err: unknown) => {
+          if (mountedRef.current) {
+            setAuthError(err instanceof Error ? err.message : "Auth error");
+          }
+        });
       }
     );
 

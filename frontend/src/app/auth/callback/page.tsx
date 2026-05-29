@@ -4,12 +4,14 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { setAccessToken } from '@/lib/auth'
+import { useAuth } from '@/hooks/useAuth'
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'https://ats-optimizer-3m4f.onrender.com/api/v1'
 
 export default function AuthCallback() {
   const router = useRouter()
+  const { refreshUser } = useAuth()
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [loadingStep, setLoadingStep] = useState<string>('Initializing...')
 
@@ -83,6 +85,9 @@ export default function AuthCallback() {
         // Persist the backend JWT (cookie + localStorage)
         setAccessToken(access_token)
 
+        setLoadingStep('Updating your session...')
+        await refreshUser()
+
         setLoadingStep('Redirecting to your workspace...')
         router.push('/dashboard')
       } catch (err) {
@@ -92,7 +97,7 @@ export default function AuthCallback() {
     }
 
     handleCallback()
-  }, [router])
+  }, [router, refreshUser])
 
   if (errorMsg) {
     return (
