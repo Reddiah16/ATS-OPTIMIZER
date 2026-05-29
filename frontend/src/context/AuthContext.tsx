@@ -17,6 +17,7 @@ import {
   isTokenValid,
   setAccessToken,
 } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import type { AuthContextValue, AuthResponse, User } from "@/types/auth";
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -55,24 +56,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     mountedRef.current = true;
 
-    const token = getAccessToken();
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
-
-    refreshUser()
-      .catch((err: unknown) => {
-        if (mountedRef.current) {
-          setAuthError(err instanceof Error ? err.message : "Auth error");
+    // Listen for Supabase auth changes (handles Google OAuth)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (session?.access_token) {
+          setAccessToken(session.access_token);
+          try {
+            const { data } = await authApi.getMe();
+            if (mountedRef.current) {
+              setUser(data);
+              setAuthError(null);
+              setIsLoading(false);
+            }
+          } catch {
+            if (mountedRef.current) {
+              clearAccessToken();
+              setUser(null);
+              setIsLoading(false);
+            }
+          }
+        } else {
+          const token = getAccessToken();
+          if (!token) {
+            if (mountedRef.current) setIsLoading(false);
+            return;
+          }
+          refreshUser()
+            .catch((err: unknown) => {
+              if (mountedRef.current) {
+                setAuthError(err instanceof Error ? err.message : "Auth error");
+              }
+            })
+            .finally(() => {
+              if (mountedRef.current) setIsLoading(false);
+            });
         }
-      })
-      .finally(() => {
-        if (mountedRef.current) setIsLoading(false);
-      });
+      }
+    );
 
     return () => {
       mountedRef.current = false;
+      subscription.unsubscribe();
     };
   }, [refreshUser]);
 
@@ -106,7 +130,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearAccessToken();
     setUser(null);
     setAuthError(null);
-    // Hard navigate to flush any cached protected state
+    supabase.auth.signOut();
     window.location.href = "/login";
   }, []);
 
@@ -139,7 +163,6 @@ export function useAuthContext(): AuthContextValue {
   return ctx;
 }
 
-/** Expose raw context ref (for advanced consumers). */
 export function AuthContextConsumer() {
   return AuthContext;
 }
