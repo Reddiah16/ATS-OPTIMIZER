@@ -17,7 +17,8 @@ interface JwtPayload {
 const cookieOptions = {
   expires: AUTH_TOKEN_EXPIRY_DAYS,
   sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
+  secure: typeof window !== "undefined" ? window.location.protocol === "https:" : process.env.NODE_ENV === "production",
+  path: "/",
 };
 
 // ─── Cookie-based storage (SSR-safe, used by middleware) ─────────────────────
@@ -108,7 +109,8 @@ export function isTokenValid(): boolean {
   const token = getAccessToken();
   if (!token) return false;
   const payload = decodeJwtPayload(token);
-  if (!payload?.exp) return true; // no expiry claim → treat as valid
+  if (!payload) return false; // malformed token is invalid
+  if (!payload.exp) return true; // no expiry claim → treat as valid
   const bufferSeconds = 30;
   return Date.now() / 1000 < payload.exp - bufferSeconds;
 }

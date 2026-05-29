@@ -59,6 +59,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for Supabase auth changes (handles Google OAuth session refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, _session) => {
+        // If we are on the callback page, let the callback page handle setting the token and loading state
+        if (typeof window !== "undefined" && window.location.pathname === "/auth/callback") {
+          return;
+        }
+
         // The callback page (/auth/callback) is responsible for calling
         // /auth/google and setting the backend JWT cookie.
         // Here we just pick up whatever backend token is already stored.
