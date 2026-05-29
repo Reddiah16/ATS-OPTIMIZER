@@ -142,20 +142,6 @@ export function RegisterForm() {
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-border/60" />
-        </div>
-        <div className="relative flex justify-center">
-          <span className="bg-transparent px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/60">
-            or continue with
-          </span>
-        </div>
-      </div>
-
-      <SocialLoginButtons disabled={isSubmitting} />
-
       {/* Footer */}
       <motion.p
         initial={{ opacity: 0 }}
