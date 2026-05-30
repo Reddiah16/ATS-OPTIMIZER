@@ -56,6 +56,31 @@ class AISuggestion(BaseModel):
     explanation: str
 
 
+class EquivalentSkillMatch(BaseModel):
+    job_requirement: str
+    candidate_equivalent: str
+    match_strength: float
+    reason: str
+
+
+class CompetencyGap(BaseModel):
+    competency: str
+    priority: str
+    suggestion: str
+
+
+class RoleFit(BaseModel):
+    seniority_alignment: str
+    explanation: str
+
+
+class SemanticAlignmentResponse(BaseModel):
+    semantic_score: float
+    role_fit: RoleFit
+    equivalent_skills_matched: List[EquivalentSkillMatch]
+    competency_gaps: List[CompetencyGap]
+
+
 class AnalysisResponse(BaseModel):
     id: int
     user_id: int
@@ -69,6 +94,7 @@ class AnalysisResponse(BaseModel):
     improved_bullets: List[Dict[str, str]]
     strengths: List[str]
     weaknesses: List[str]
+    semantic_alignment: Optional[SemanticAlignmentResponse] = None
     created_at: datetime
 
     class Config:

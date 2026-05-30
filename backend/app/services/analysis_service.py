@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.analysis import (
     AnalysisRequest, AnalysisResponse, AnalysisSummary,
     AnalysisHistoryResponse, ScoreBreakdown, KeywordAnalysis,
-    SkillAnalysis, AISuggestion,
+    SkillAnalysis, AISuggestion, SemanticAlignmentResponse,
 )
 from app.services.ats_service import calculate_ats_score
 from app.services.ai_service import AIService
@@ -85,6 +85,7 @@ class AnalysisService:
             improved_bullets=ai_result.get("improved_bullets", []),
             strengths=ai_result.get("strengths", []),
             weaknesses=ai_result.get("weaknesses", []),
+            semantic_alignment=ai_result.get("semantic_alignment", None),
         )
         self.db.add(analysis)
         self.db.commit()
@@ -179,5 +180,6 @@ class AnalysisService:
             improved_bullets=analysis.improved_bullets or [],
             strengths=analysis.strengths or [],
             weaknesses=analysis.weaknesses or [],
+            semantic_alignment=SemanticAlignmentResponse(**analysis.semantic_alignment) if (hasattr(analysis, "semantic_alignment") and analysis.semantic_alignment) else None,
             created_at=analysis.created_at,
         )

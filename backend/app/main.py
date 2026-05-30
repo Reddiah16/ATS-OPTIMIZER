@@ -34,6 +34,17 @@ os.makedirs("uploads", exist_ok=True)
 os.makedirs("logs", exist_ok=True)
 
 from app.models import User, Resume, Analysis  # noqa
+
+# Dynamic ALTER TABLE Migration Hook to add semantic_alignment column
+with engine.connect() as conn:
+    try:
+        from sqlalchemy import text
+        conn.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS semantic_alignment JSON;"))
+        conn.commit()
+        logger.info("Database migration successful: analyses.semantic_alignment column verified.")
+    except Exception as e:
+        logger.debug(f"SQLite or initial database run detected, skipping explicit ALTER TABLE: {e}")
+
 Base.metadata.create_all(bind=engine)
 
 # ========================

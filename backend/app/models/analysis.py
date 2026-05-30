@@ -36,6 +36,7 @@ class Analysis(Base):
     improved_bullets = Column(JSON, nullable=True)   # AI-improved bullet points
     strengths = Column(JSON, nullable=True)
     weaknesses = Column(JSON, nullable=True)
+    semantic_alignment = Column(JSON, nullable=True) # AI semantic & logical alignment analysis
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

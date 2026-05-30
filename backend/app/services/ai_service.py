@@ -33,7 +33,14 @@ class AIService:
         prompt = f"""
 You are an expert ATS resume consultant.
 
-Analyze the resume against the job description.
+Analyze the resume against the job description to evaluate:
+1. Standard feedback, strengths, and weaknesses.
+2. Google X-Y-Z improved bullet points.
+3. Logical & Semantic Competency Alignment:
+   - Role Seniority/Complexity Fit (Junior, Mid, Senior fit comparison).
+   - Concept/Synonym mappings (equivalent tools/skills).
+   - Domain & Industry relevance.
+   - Logical Semantic Score (0-100) based on actual conceptual overlap and skill depth.
 
 RESUME:
 {resume_text[:3000]}
@@ -41,7 +48,7 @@ RESUME:
 JOB DESCRIPTION:
 {job_description[:2000]}
 
-ATS SCORE:
+ATS SCORE (Based on strict keywords):
 {ats_score}
 
 MATCHED KEYWORDS:
@@ -50,13 +57,47 @@ MATCHED KEYWORDS:
 MISSING KEYWORDS:
 {", ".join(missing_keywords[:15])}
 
-Return ONLY valid JSON:
+Return ONLY valid JSON in this exact structure:
 
 {{
   "strengths": [],
   "weaknesses": [],
-  "ai_feedback": [],
-  "improved_bullets": []
+  "ai_feedback": [
+    {{
+      "category": "string",
+      "original": "string or null",
+      "improved": "string or null",
+      "explanation": "string"
+    }}
+  ],
+  "improved_bullets": [
+    {{
+      "original": "string",
+      "improved": "string"
+    }}
+  ],
+  "semantic_alignment": {{
+    "semantic_score": 85.0,
+    "role_fit": {{
+      "seniority_alignment": "Junior/Mid/Senior/Expert Match",
+      "explanation": "Brief explanation of seniority and complexity fit."
+    }},
+    "equivalent_skills_matched": [
+      {{
+        "job_requirement": "name of JD requirement",
+        "candidate_equivalent": "candidate's equivalent tool/skill",
+        "match_strength": 0.8,
+        "reason": "explanation of equivalence"
+      }}
+    ],
+    "competency_gaps": [
+      {{
+        "competency": "domain topic",
+        "priority": "High/Medium/Low",
+        "suggestion": "how to bridge it"
+      }}
+    ]
+  }}
 }}
 """
 
@@ -222,5 +263,20 @@ RESUME:
                 }
             ],
 
-            "improved_bullets": []
+            "improved_bullets": [],
+            "semantic_alignment": {
+                "semantic_score": round(ats_score, 1),
+                "role_fit": {
+                    "seniority_alignment": "N/A (Analysis Fallback)",
+                    "explanation": "High-level text alignment score has been used. The deep AI role complexity evaluation was temporarily bypassed due to an API timeout."
+                },
+                "equivalent_skills_matched": [],
+                "competency_gaps": [
+                    {
+                        "competency": "AI Deep Scan",
+                        "priority": "Low",
+                        "suggestion": "Retry the analysis in a few minutes to trigger deep semantic indexing."
+                    }
+                ]
+            }
         }
