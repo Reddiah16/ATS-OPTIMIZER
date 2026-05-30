@@ -1,12 +1,33 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing import Optional, List, Dict, Any
+from app.utils.security import sanitize_input, detect_prompt_injection
 
 
 class AnalysisRequest(BaseModel):
     resume_id: int
     job_description: str
     job_title: Optional[str] = None
+
+    @field_validator("job_title")
+    @classmethod
+    def validate_job_title(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return v
+        sanitized = sanitize_input(v)
+        if detect_prompt_injection(sanitized):
+            raise ValueError("Security violation: Potential prompt injection attempt detected in job title")
+        return sanitized
+
+    @field_validator("job_description")
+    @classmethod
+    def validate_job_description(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("Job description cannot be empty")
+        sanitized = sanitize_input(v)
+        if detect_prompt_injection(sanitized):
+            raise ValueError("Security violation: Potential prompt injection attempt detected in job description")
+        return sanitized
 
 
 class ScoreBreakdown(BaseModel):

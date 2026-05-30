@@ -8,6 +8,7 @@ from app.models.resume import Resume
 from app.models.user import User
 from app.schemas.resume import ResumeResponse, ResumeListResponse
 from app.utils.file_parser import extract_text, validate_file_type, validate_file_size
+from app.utils.security import validate_file_content_signature
 from app.config import settings
 
 
@@ -21,7 +22,7 @@ class ResumeService:
 
     async def upload_resume(self, file: UploadFile, user: User) -> ResumeResponse:
         """Handle resume upload: validate, save, extract text, persist to DB."""
-        # Validate file type
+        # Validate file type extension
         is_valid, file_type = validate_file_type(file.filename)
         if not is_valid:
             raise HTTPException(
@@ -31,6 +32,14 @@ class ResumeService:
 
         # Read file content
         content = await file.read()
+
+        # Validate actual file bytes signature (magic numbers) to prevent renamed executable exploits
+        is_signature_valid, detected_type = validate_file_content_signature(content)
+        if not is_signature_valid:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Security violation: File signature validation failed. Content does not match valid PDF or DOCX structures.",
+            )
 
         # Validate file size
         if not validate_file_size(len(content), settings.MAX_FILE_SIZE_MB):

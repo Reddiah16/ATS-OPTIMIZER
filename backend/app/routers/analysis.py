@@ -11,8 +11,10 @@ from app.services.analysis_service import AnalysisService
 from app.services.ai_service import AIService
 from app.middleware.auth import get_current_active_user
 from app.models.user import User
+from app.utils.rate_limiter import RateLimiterDependency
 
 router = APIRouter(prefix="/analysis", tags=["Analysis"])
+ai_rate_limiter = RateLimiterDependency(limit=3, window=60, scope="AI")
 
 
 @router.post("/", response_model=AnalysisResponse, status_code=201)
@@ -20,6 +22,7 @@ async def create_analysis(
     request: AnalysisRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
+    _rate_limit = Depends(ai_rate_limiter),
 ):
     service = AnalysisService(db)
     return await service.run_analysis(request, current_user)
@@ -44,7 +47,3 @@ def get_analysis(
 ):
     service = AnalysisService(db)
     return service.get_analysis_by_id(analysis_id, current_user)
-
-
-
-    return result

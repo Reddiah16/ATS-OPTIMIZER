@@ -11,18 +11,20 @@ from app.models.user import User
 from app.utils.jwt import create_access_token
 from app.config import settings
 from fastapi import HTTPException, status
+from app.utils.rate_limiter import RateLimiterDependency
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+auth_rate_limiter = RateLimiterDependency(limit=5, window=60, scope="auth")
 
 
 @router.post("/register", response_model=TokenResponse, status_code=201)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+def register(user_data: UserCreate, db: Session = Depends(get_db), _rate_limit = Depends(auth_rate_limiter)):
     service = AuthService(db)
     return service.register(user_data)
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(credentials: UserLogin, db: Session = Depends(get_db)):
+def login(credentials: UserLogin, db: Session = Depends(get_db), _rate_limit = Depends(auth_rate_limiter)):
     service = AuthService(db)
     return service.login(credentials)
 

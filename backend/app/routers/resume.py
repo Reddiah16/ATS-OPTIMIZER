@@ -6,8 +6,10 @@ from app.schemas.resume import ResumeResponse, ResumeListResponse
 from app.services.resume_service import ResumeService
 from app.middleware.auth import get_current_active_user
 from app.models.user import User
+from app.utils.rate_limiter import RateLimiterDependency
 
 router = APIRouter(prefix="/resumes", tags=["Resumes"])
+upload_rate_limiter = RateLimiterDependency(limit=5, window=300, scope="upload")
 
 
 @router.post("/upload", response_model=ResumeResponse, status_code=201)
@@ -15,6 +17,7 @@ async def upload_resume(
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
+    _rate_limit = Depends(upload_rate_limiter),
 ):
     """
     Upload a resume (PDF or DOCX).
