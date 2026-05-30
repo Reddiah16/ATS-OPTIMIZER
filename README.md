@@ -178,5 +178,15 @@ python -m unittest discover -s app/tests
 
 ---
 
+## 🔮 Future Roadmap & Enhancements
+The architecture is modularly designed to support additional advanced features in subsequent iterations:
+- 🎓 **Skill Gap Analysis**: Recommends targeted learning resources, courses (e.g. Coursera, Udemy), or projects to help users bridge identified keyword/skill gaps.
+- 📂 **Multi-Resume Comparison**: Enables users to compare multiple uploaded resumes side-by-side against a single job description to find their best-matching CV.
+- 🔄 **Resume Version Tracking**: Saves previous analysis runs so users can track their ATS score progression visually over time.
+- 🎯 **Advanced Recruiter Screening**: A dashboard allowing recruiters to filter and screen applicants based on custom semantic match and weighted scores.
+- 💡 **AI Cover Letter Customization**: Generates highly targeted, role-specific cover letters that logically incorporate missing skills and action verbs.
+
+---
+
 ## 📄 License
 Distributed under the **MIT License**. Feel free to use and adapt this project for your portfolio!
