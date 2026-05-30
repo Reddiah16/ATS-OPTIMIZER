@@ -62,6 +62,22 @@ Return ONLY valid JSON in this exact structure:
 {{
   "strengths": [],
   "weaknesses": [],
+  "score_explanation": "A short, actionable explanation of the overall score and readiness label.",
+  "category_explanations": {{
+    "keyword_match": {{ "explanation": "string", "suggestions": ["string"] }},
+    "skill_match": {{ "explanation": "string", "suggestions": ["string"] }},
+    "experience_quality": {{ "explanation": "string", "suggestions": ["string"] }},
+    "formatting": {{ "explanation": "string", "suggestions": ["string"] }}
+  }},
+  "top_fixes": [
+    {{
+      "title": "string",
+      "severity": "high | medium | low",
+      "why_it_matters": "string",
+      "suggested_action": "string",
+      "estimated_score_impact": "string (e.g. '+4 to +8 points')"
+    }}
+  ],
   "ai_feedback": [
     {{
       "category": "string",
@@ -254,6 +270,23 @@ RESUME:
                 f"ATS score is {ats_score}%",
                 "Missing important keywords",
                 "Resume lacks quantified metrics"
+            ],
+
+            "score_explanation": f"Your score of {ats_score} indicates some keyword gaps.",
+            "category_explanations": {
+                "keyword_match": { "explanation": "Fallback keyword analysis", "suggestions": ["Add more keywords from the JD."] },
+                "skill_match": { "explanation": "Fallback skill analysis", "suggestions": ["Check JD for missing skills."] },
+                "experience_quality": { "explanation": "Fallback experience analysis", "suggestions": ["Use action verbs and metrics."] },
+                "formatting": { "explanation": "Fallback formatting analysis", "suggestions": ["Ensure clear headings."] }
+            },
+            "top_fixes": [
+                {
+                    "title": "Add missing keywords",
+                    "severity": "high",
+                    "why_it_matters": "Keywords are essential for ATS matching.",
+                    "suggested_action": f"Add these keywords: {', '.join(missing_keywords[:5])}",
+                    "estimated_score_impact": "+5 to +10 points"
+                }
             ],
 
             "ai_feedback": [

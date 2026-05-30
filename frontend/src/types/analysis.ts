@@ -29,12 +29,40 @@ export interface ImprovedBullet {
   improved: string;
 }
 
+export interface CategoryScoreDetail {
+  score: number;
+  max_weight: number;
+  percentage: number;
+  explanation: string;
+  suggestions: string[];
+}
+
+export interface CategoryScores {
+  keyword_match: CategoryScoreDetail;
+  skill_match: CategoryScoreDetail;
+  experience_quality: CategoryScoreDetail;
+  formatting: CategoryScoreDetail;
+}
+
+export interface TopFix {
+  title: string;
+  severity: string;
+  why_it_matters: string;
+  suggested_action: string;
+  estimated_score_impact: string;
+}
+
 export interface Analysis {
   id: number;
   user_id: number;
   resume_id: number;
   job_title: string | null;
   ats_score: number;
+  overall_score?: number;
+  readiness_label?: string;
+  score_explanation?: string;
+  category_scores?: CategoryScores;
+  top_fixes?: TopFix[];
   score_breakdown: ScoreBreakdown;
   keyword_analysis: KeywordAnalysis;
   skill_analysis: SkillAnalysis;

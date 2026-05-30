@@ -81,12 +81,40 @@ class SemanticAlignmentResponse(BaseModel):
     competency_gaps: List[CompetencyGap]
 
 
+class CategoryScoreDetail(BaseModel):
+    score: float
+    max_weight: float
+    percentage: float
+    explanation: str
+    suggestions: List[str]
+
+
+class CategoryScores(BaseModel):
+    keyword_match: CategoryScoreDetail
+    skill_match: CategoryScoreDetail
+    experience_quality: CategoryScoreDetail
+    formatting: CategoryScoreDetail
+
+
+class TopFix(BaseModel):
+    title: str
+    severity: str
+    why_it_matters: str
+    suggested_action: str
+    estimated_score_impact: str
+
+
 class AnalysisResponse(BaseModel):
     id: int
     user_id: int
     resume_id: int
     job_title: Optional[str]
     ats_score: float
+    overall_score: Optional[float] = None
+    readiness_label: Optional[str] = None
+    score_explanation: Optional[str] = None
+    category_scores: Optional[CategoryScores] = None
+    top_fixes: Optional[List[TopFix]] = None
     score_breakdown: ScoreBreakdown
     keyword_analysis: KeywordAnalysis
     skill_analysis: SkillAnalysis

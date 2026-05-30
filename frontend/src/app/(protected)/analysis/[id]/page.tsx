@@ -16,6 +16,9 @@ import { ErrorState } from "@/components/error";
 import Navbar from "@/components/Navbar";
 
 import { ScoreBar } from "@/components/ATSScoreGauge";
+import ReadinessBadge from "@/components/ReadinessBadge";
+import CategoryScoreCard from "@/components/CategoryScoreCard";
+import TopFixesPanel from "@/components/TopFixesPanel";
 
 import { Analysis } from "@/types";
 
@@ -277,6 +280,10 @@ export default function AnalysisPage() {
 
                   REPORT
                 </span>
+
+                {analysis.readiness_label && (
+                  <ReadinessBadge label={analysis.readiness_label} />
+                )}
               </div>
 
               <div className="flex items-center gap-4 text-xs text-slate-500 mt-2 font-medium">
@@ -346,7 +353,7 @@ export default function AnalysisPage() {
             <motion.div
               variants={itemVariants}
 
-              className="card p-6"
+              className="card p-6 flex flex-col items-center justify-center"
             >
 
               <ATSScoreGauge
@@ -354,37 +361,12 @@ export default function AnalysisPage() {
                 size="lg"
                 animate
               />
-
-              <div className="mt-6 space-y-4">
-
-                <ScoreBar
-                  label="Keywords"
-                  score={sb.keyword_score}
-                  maxScore={35}
-                  color="#6172f5"
-                />
-
-                <ScoreBar
-                  label="Skills"
-                  score={sb.skill_score}
-                  maxScore={30}
-                  color="#a78bfa"
-                />
-
-                <ScoreBar
-                  label="Experience"
-                  score={sb.experience_score}
-                  maxScore={20}
-                  color="#34d399"
-                />
-
-                <ScoreBar
-                  label="Formatting"
-                  score={sb.formatting_score}
-                  maxScore={15}
-                  color="#fbbf24"
-                />
-              </div>
+              
+              {analysis.score_explanation && (
+                <p className="mt-6 text-sm text-center text-slate-300 leading-relaxed bg-white/5 p-4 rounded-xl border border-white/5">
+                  {analysis.score_explanation}
+                </p>
+              )}
             </motion.div>
 
             {/* RADAR CHART */}
@@ -456,6 +438,25 @@ export default function AnalysisPage() {
               </div>
             </motion.div>
           </div>
+
+          {/* CATEGORY SCORES */}
+
+          {analysis.category_scores && (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <CategoryScoreCard title="Keyword Match" detail={analysis.category_scores.keyword_match} delay={0.1} />
+              <CategoryScoreCard title="Skill Match" detail={analysis.category_scores.skill_match} delay={0.2} />
+              <CategoryScoreCard title="Experience Quality" detail={analysis.category_scores.experience_quality} delay={0.3} />
+              <CategoryScoreCard title="Formatting" detail={analysis.category_scores.formatting} delay={0.4} />
+            </div>
+          )}
+
+          {/* TOP FIXES */}
+
+          {analysis.top_fixes && analysis.top_fixes.length > 0 && (
+            <motion.div variants={itemVariants}>
+              <TopFixesPanel fixes={analysis.top_fixes} />
+            </motion.div>
+          )}
 
           {/* KEYWORD ANALYSIS */}
 

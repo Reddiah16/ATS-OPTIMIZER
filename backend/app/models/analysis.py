@@ -38,6 +38,12 @@ class Analysis(Base):
     weaknesses = Column(JSON, nullable=True)
     semantic_alignment = Column(JSON, nullable=True) # AI semantic & logical alignment analysis
 
+    # Phase 1 new fields
+    readiness_label = Column(String(50), nullable=True)
+    score_explanation = Column(Text, nullable=True)
+    category_scores = Column(JSON, nullable=True)    # Detailed category breakdown
+    top_fixes = Column(JSON, nullable=True)          # Prioritized fixes list
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

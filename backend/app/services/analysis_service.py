@@ -65,13 +65,58 @@ class AnalysisService:
             ats_score=ats_result["ats_score"],
         )
 
+        score = ats_result["ats_score"]
+        if score < 55:
+            readiness_label = "Low Fit"
+        elif score <= 75:
+            readiness_label = "Moderate Fit"
+        else:
+            readiness_label = "Strong Fit"
+
+        cat_exp = ai_result.get("category_explanations", {})
+        kw_exp = cat_exp.get("keyword_match", {})
+        sk_exp = cat_exp.get("skill_match", {})
+        ex_exp = cat_exp.get("experience_quality", {})
+        fm_exp = cat_exp.get("formatting", {})
+
+        category_scores = {
+            "keyword_match": {
+                "score": ats_result["keyword_score"],
+                "max_weight": 35.0,
+                "percentage": round((ats_result["keyword_score"] / 35.0) * 100, 1) if ats_result["keyword_score"] else 0,
+                "explanation": kw_exp.get("explanation", "Keyword analysis."),
+                "suggestions": kw_exp.get("suggestions", []),
+            },
+            "skill_match": {
+                "score": ats_result["skill_score"],
+                "max_weight": 30.0,
+                "percentage": round((ats_result["skill_score"] / 30.0) * 100, 1) if ats_result["skill_score"] else 0,
+                "explanation": sk_exp.get("explanation", "Skill analysis."),
+                "suggestions": sk_exp.get("suggestions", []),
+            },
+            "experience_quality": {
+                "score": ats_result["experience_score"],
+                "max_weight": 20.0,
+                "percentage": round((ats_result["experience_score"] / 20.0) * 100, 1) if ats_result["experience_score"] else 0,
+                "explanation": ex_exp.get("explanation", "Experience alignment."),
+                "suggestions": ex_exp.get("suggestions", []),
+            },
+            "formatting": {
+                "score": ats_result["formatting_score"],
+                "max_weight": 15.0,
+                "percentage": round((ats_result["formatting_score"] / 15.0) * 100, 1) if ats_result["formatting_score"] else 0,
+                "explanation": fm_exp.get("explanation", "Formatting quality."),
+                "suggestions": fm_exp.get("suggestions", []),
+            }
+        }
+
         # 4. Persist analysis
         analysis = Analysis(
             user_id=user.id,
             resume_id=resume.id,
             job_title=request.job_title,
             job_description=request.job_description,
-            ats_score=ats_result["ats_score"],
+            ats_score=score,
             keyword_score=ats_result["keyword_score"],
             skill_score=ats_result["skill_score"],
             experience_score=ats_result["experience_score"],
@@ -81,6 +126,10 @@ class AnalysisService:
             all_job_keywords=ats_result["all_job_keywords"],
             matched_skills=ats_result["matched_skills"],
             missing_skills=ats_result["missing_skills"],
+            readiness_label=readiness_label,
+            score_explanation=ai_result.get("score_explanation", f"Overall score is {score}"),
+            category_scores=category_scores,
+            top_fixes=ai_result.get("top_fixes", []),
             ai_feedback=ai_result.get("ai_feedback", []),
             improved_bullets=ai_result.get("improved_bullets", []),
             strengths=ai_result.get("strengths", []),
@@ -160,6 +209,11 @@ class AnalysisService:
             resume_id=analysis.resume_id,
             job_title=analysis.job_title,
             ats_score=analysis.ats_score,
+            overall_score=analysis.ats_score,
+            readiness_label=analysis.readiness_label,
+            score_explanation=analysis.score_explanation,
+            category_scores=analysis.category_scores,
+            top_fixes=analysis.top_fixes,
             score_breakdown=ScoreBreakdown(
                 keyword_score=analysis.keyword_score or 0,
                 skill_score=analysis.skill_score or 0,
