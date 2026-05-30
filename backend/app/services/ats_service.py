@@ -1,6 +1,7 @@
 import re
 import math
 from typing import List, Tuple, Dict, Any
+from collections import Counter
 from loguru import logger
 
 # Tech skills & keywords dictionary for extraction
@@ -68,6 +69,74 @@ def normalize_text(text: str) -> str:
     return text.strip()
 
 
+def get_term_weight(term: str) -> float:
+    """
+    Get domain-specific importance weight for a term:
+    - Core technical skills: 2.0
+    - Tools & platforms: 1.5
+    - Soft skills: 1.0
+    - Generic keywords: 0.5
+    """
+    term = term.lower()
+    
+    # 1. Core technical skills (Programming, Web, Data, Cloud)
+    for category in ["programming", "web", "data", "cloud"]:
+        if term in TECH_SKILLS[category]:
+            return 2.0
+            
+    # 2. Tools & Platforms
+    if term in TECH_SKILLS["tools"]:
+        return 1.5
+        
+    # 3. Soft skills
+    if term in TECH_SKILLS["soft"]:
+        return 1.0
+        
+    # 4. Generic/Default keyword
+    return 0.5
+
+
+def compute_cosine_similarity(resume_terms: List[str], jd_terms: List[str]) -> float:
+    """
+    Compute domain-weighted Cosine Similarity between resume and JD keyword vectors.
+    """
+    if not resume_terms or not jd_terms:
+        return 0.0
+
+    resume_counts = Counter(k.lower() for k in resume_terms)
+    jd_counts = Counter(k.lower() for k in jd_terms)
+
+    resume_total = sum(resume_counts.values())
+    jd_total = sum(jd_counts.values())
+
+    if resume_total == 0 or jd_total == 0:
+        return 0.0
+
+    # Calculate weighted vectors
+    # We use Term Frequency (count / total_terms) multiplied by the domain weight
+    resume_vector = {
+        term: (count / resume_total) * get_term_weight(term)
+        for term, count in resume_counts.items()
+    }
+    jd_vector = {
+        term: (count / jd_total) * get_term_weight(term)
+        for term, count in jd_counts.items()
+    }
+
+    # Calculate dot product
+    dot_product = sum(resume_vector.get(t, 0.0) * jd_vector.get(t, 0.0) for t in jd_vector)
+
+    # Calculate magnitudes
+    resume_magnitude = math.sqrt(sum(val ** 2 for val in resume_vector.values()))
+    jd_magnitude = math.sqrt(sum(val ** 2 for val in jd_vector.values()))
+
+    if resume_magnitude == 0.0 or jd_magnitude == 0.0:
+        return 0.0
+
+    return dot_product / (resume_magnitude * jd_magnitude)
+
+
+
 def extract_keywords(text: str, min_length: int = 3) -> List[str]:
     """
     Extract meaningful keywords from text.
@@ -129,29 +198,31 @@ def compute_keyword_overlap(
     return matched, missing, round(match_pct, 1)
 
 
-def score_keyword_match(match_percentage: float) -> float:
-    """Convert keyword match percentage to a 0-35 score."""
-    return min(35.0, match_percentage * 0.35)
+def score_keyword_match(resume_keywords: List[str], jd_keywords: List[str]) -> Tuple[float, float]:
+    """
+    Score keyword match using Cosine Similarity.
+    Returns (keyword_score_out_of_35, similarity_percentage).
+    """
+    similarity = compute_cosine_similarity(resume_keywords, jd_keywords)
+    score = round(min(35.0, similarity * 35.0), 1)
+    return score, round(similarity * 100, 1)
 
 
 def score_skill_match(
     resume_skills: List[str], jd_skills: List[str]
 ) -> Tuple[float, List[str], List[str]]:
-    """Score skill overlap and return matched/missing skills. Score out of 30."""
-    if not jd_skills:
-        return 20.0, [], []
-
+    """Score skill overlap using Cosine Similarity and return matched/missing skills. Score out of 30."""
     resume_skill_set = set(s.lower() for s in resume_skills)
     jd_skill_set = set(s.lower() for s in jd_skills)
 
     matched = list(resume_skill_set & jd_skill_set)
     missing = list(jd_skill_set - resume_skill_set)
 
-    if not jd_skill_set:
+    if not jd_skills:
         return 20.0, matched, missing
 
-    skill_pct = len(matched) / len(jd_skill_set)
-    raw_score = skill_pct * 30.0
+    similarity = compute_cosine_similarity(resume_skills, jd_skills)
+    raw_score = similarity * 30.0
     return round(raw_score, 1), matched, missing
 
 
@@ -231,12 +302,12 @@ def calculate_ats_score(
     jd_skills = extract_skills(job_description)
 
     # Compute keyword overlap
-    matched_kw, missing_kw, kw_match_pct = compute_keyword_overlap(
+    matched_kw, missing_kw, _ = compute_keyword_overlap(
         resume_keywords, jd_keywords
     )
 
     # Score each dimension
-    keyword_score = score_keyword_match(kw_match_pct)
+    keyword_score, kw_match_pct = score_keyword_match(resume_keywords, jd_keywords)
     skill_score, matched_skills, missing_skills = score_skill_match(
         resume_skills, jd_skills
     )
