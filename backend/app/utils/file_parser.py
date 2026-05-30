@@ -1,6 +1,5 @@
 import pdfplumber
 import docx
-import io
 import os
 from loguru import logger
 from typing import Optional

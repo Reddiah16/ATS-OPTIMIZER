@@ -11,9 +11,6 @@ from app.config import settings
 from app.database.session import Base
 
 # Import all models to register them with Base.metadata
-from app.models.user import User
-from app.models.resume import Resume
-from app.models.analysis import Analysis
 
 config = context.config
 config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)

@@ -72,7 +72,6 @@ async def google_auth(
 
     supabase_user = response.json()
     email = supabase_user.get("email")
-    full_name = supabase_user.get("user_metadata", {}).get("full_name", "")
 
     if not email:
         raise HTTPException(

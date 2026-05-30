@@ -14,9 +14,6 @@ from app.services.ats_service import (
     get_term_weight,
     compute_cosine_similarity,
     calculate_ats_score,
-    extract_keywords,
-    extract_skills,
-    split_into_bullets,
     score_bullet,
     score_experience_alignment,
 )

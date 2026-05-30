@@ -139,6 +139,32 @@ ats-optimizer/
 | `GET` | `/api/v1/analysis/history` | Retrieve paginated resume analysis runs history |
 | `GET` | `/api/v1/analysis/{id}` | Retrieve specific analysis report details by ID |
 
+| `GET` | `/api/v1/analysis/{id}/compare` | Compare score delta between two analysis runs |
+
+---
+
+## 📖 How to Use ResumeIQ
+
+1. **Upload**: Drag and drop your resume (PDF or DOCX) into the upload zone and paste the target Job Description.
+2. **Analyze**: The system will extract your text and process it through the AI scoring engine.
+3. **Review**: Check your ATS score gauge and the four Category Scores. Pay special attention to the *Top Fixes*.
+4. **Iterate**:
+   - Use the **Section Diagnostics** to see if any standard sections are missing.
+   - Use the **Bullet Analysis** to view AI-optimized rewrites of weak experience bullets.
+   - Use the **Keyword Intelligence** panel to spot missing requirements or equivalent skills.
+5. **Re-Score**: After updating your resume based on the suggestions, click **Update Score** to run a live re-evaluation and view your score delta!
+
+---
+
+## 🧠 How the Analysis Works
+
+ResumeIQ splits analysis into fast deterministic checks and deep semantic AI evaluation:
+- **Category Scores**: Overall score is derived from Keyword Match (35%), Skill Match (30%), Experience Quality (20%), and Formatting (15%).
+- **Section Diagnostics**: Identifies standard resume sections (Header, Summary, Experience, Education) and evaluates them for completeness and ATS risk.
+- **Bullet Analysis**: Automatically extracts your work history bullets and evaluates them against the Google X-Y-Z formula (Action Verb + Quantifiable Metric).
+- **Formatting Checks**: Deterministically scans for dense text blocks, missing contact info, and inconsistent standard patterns.
+- **Keyword Grouping**: Not only finds missing keywords, but intelligently identifies *Equivalent Skills* (e.g. you have `ReactJS`, but the JD specifically asks for `React`).
+
 ---
 
 ## 🚀 Getting Started
@@ -208,9 +234,9 @@ python -m unittest discover -s app/tests
 The architecture is modularly designed to support additional advanced features in subsequent iterations:
 - 🎓 **Skill Gap Analysis**: Recommends targeted learning resources, courses (e.g. Coursera, Udemy), or projects to help users bridge identified keyword/skill gaps.
 - 📂 **Multi-Resume Comparison**: Enables users to compare multiple uploaded resumes side-by-side against a single job description to find their best-matching CV.
-- 🔄 **Resume Version Tracking**: Saves previous analysis runs so users can track their ATS score progression visually over time.
 - 🎯 **Advanced Recruiter Screening**: A dashboard allowing recruiters to filter and screen applicants based on custom semantic match and weighted scores.
 - 💡 **AI Cover Letter Customization**: Generates highly targeted, role-specific cover letters that logically incorporate missing skills and action verbs.
+- 🤖 **Automated Job Matching**: Integrating with external job boards to automatically scrape and recommend active postings based on your optimized resume profile.
 
 ---
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, Body
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -10,7 +10,6 @@ from app.schemas.analysis import (
     AnalysisComparison,
 )
 from app.services.analysis_service import AnalysisService
-from app.services.ai_service import AIService
 from app.middleware.auth import get_current_active_user
 from app.models.user import User
 from app.utils.rate_limiter import RateLimiterDependency

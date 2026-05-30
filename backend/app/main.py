@@ -1,6 +1,5 @@
 import os
 from fastapi import FastAPI, Request, status, Response
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from loguru import logger

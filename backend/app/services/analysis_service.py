@@ -1,7 +1,6 @@
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from loguru import logger
-from typing import List
 
 from app.models.analysis import Analysis
 from app.models.resume import Resume
@@ -273,9 +272,8 @@ class AnalysisService:
                 )
                 self.db.add(app_sugg)
 
-        from app.services.ats_service import ATSService
-        ats_service = ATSService()
-        ats_result = ats_service.calculate_ats_score(request.resume_text, parent_analysis.job_description)
+        from app.services.ats_service import calculate_ats_score
+        ats_result = calculate_ats_score(request.resume_text, parent_analysis.job_description)
 
         new_analysis = Analysis(
             user_id=user.id,

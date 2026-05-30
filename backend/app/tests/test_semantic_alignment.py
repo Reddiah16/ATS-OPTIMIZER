@@ -12,10 +12,6 @@ sys.path.insert(0, backend_dir)
 import unittest
 from app.schemas.analysis import (
     SemanticAlignmentResponse,
-    RoleFit,
-    EquivalentSkillMatch,
-    CompetencyGap,
-    AnalysisResponse,
 )
 from app.services.ai_service import AIService
 
