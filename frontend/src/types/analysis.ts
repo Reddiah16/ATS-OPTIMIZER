@@ -52,6 +52,46 @@ export interface TopFix {
   estimated_score_impact: string;
 }
 
+export interface SectionDiagnostic {
+  section_name: string;
+  present: boolean;
+  completeness_score: number;
+  quality: string;
+  ats_risk: string;
+  issues: string[];
+  suggestions: string[];
+  section_score: number;
+}
+
+export interface FormattingChecks {
+  formatting_score: number;
+  issues: string[];
+  suggestions: string[];
+}
+
+export interface BulletAnalysisItem {
+  original_text: string;
+  bullet_score: number;
+  issues: string[];
+  improved_text: string;
+  is_improvement_accepted: boolean;
+}
+
+export interface KeywordGrouping {
+  matched_required_keywords: string[];
+  missing_required_keywords: string[];
+  secondary_keywords: string[];
+  equivalent_skill_matches: Array<{
+    job_requirement: string;
+    candidate_equivalent: string;
+    reason: string;
+  }>;
+  employer_language_to_mirror: string[];
+  keyword_match_percentage: number;
+  explanation: string;
+  suggested_section_for_each_missing_keyword: Record<string, string>;
+}
+
 export interface Analysis {
   id: number;
   user_id: number;
@@ -63,6 +103,10 @@ export interface Analysis {
   score_explanation?: string;
   category_scores?: CategoryScores;
   top_fixes?: TopFix[];
+  section_diagnostics?: SectionDiagnostic[];
+  formatting_checks?: FormattingChecks;
+  bullet_analysis?: BulletAnalysisItem[];
+  keyword_grouping?: KeywordGrouping;
   score_breakdown: ScoreBreakdown;
   keyword_analysis: KeywordAnalysis;
   skill_analysis: SkillAnalysis;

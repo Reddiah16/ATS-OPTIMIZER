@@ -78,6 +78,50 @@ Return ONLY valid JSON in this exact structure:
       "estimated_score_impact": "string (e.g. '+4 to +8 points')"
     }}
   ],
+  "section_diagnostics": [
+    {{
+      "section_name": "string",
+      "present": true,
+      "completeness_score": 10.0,
+      "quality": "string",
+      "ats_risk": "string",
+      "issues": ["string"],
+      "suggestions": ["string"],
+      "section_score": 10.0
+    }}
+  ],
+  "formatting_checks": {{
+    "formatting_score": 10.0,
+    "issues": ["string"],
+    "suggestions": ["string"]
+  }},
+  "bullet_analysis": [
+    {{
+      "original_text": "string",
+      "bullet_score": 10.0,
+      "issues": ["string"],
+      "improved_text": "string",
+      "is_improvement_accepted": false
+    }}
+  ],
+  "keyword_grouping": {{
+    "matched_required_keywords": ["string"],
+    "missing_required_keywords": ["string"],
+    "secondary_keywords": ["string"],
+    "equivalent_skill_matches": [
+      {{
+        "job_requirement": "string",
+        "candidate_equivalent": "string",
+        "reason": "string"
+      }}
+    ],
+    "employer_language_to_mirror": ["string"],
+    "keyword_match_percentage": 50.0,
+    "explanation": "string",
+    "suggested_section_for_each_missing_keyword": {{
+      "keyword": "section_name"
+    }}
+  }},
   "ai_feedback": [
     {{
       "category": "string",
@@ -128,7 +172,7 @@ Return ONLY valid JSON in this exact structure:
                     }
                 ],
                 temperature=0.4,
-                max_tokens=1500
+                max_tokens=3500
             )
 
             content = response.choices[0].message.content
@@ -288,6 +332,23 @@ RESUME:
                     "estimated_score_impact": "+5 to +10 points"
                 }
             ],
+            "section_diagnostics": [],
+            "formatting_checks": {
+                "formatting_score": 5.0,
+                "issues": ["Fallback formatting analysis"],
+                "suggestions": ["Check headers and spacing"]
+            },
+            "bullet_analysis": [],
+            "keyword_grouping": {
+                "matched_required_keywords": missing_keywords[:5],
+                "missing_required_keywords": missing_keywords,
+                "secondary_keywords": [],
+                "equivalent_skill_matches": [],
+                "employer_language_to_mirror": [],
+                "keyword_match_percentage": ats_score,
+                "explanation": "Fallback keyword analysis",
+                "suggested_section_for_each_missing_keyword": {}
+            },
 
             "ai_feedback": [
                 {

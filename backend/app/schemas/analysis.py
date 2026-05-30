@@ -104,6 +104,42 @@ class TopFix(BaseModel):
     estimated_score_impact: str
 
 
+class SectionDiagnostic(BaseModel):
+    section_name: str
+    present: bool
+    completeness_score: float
+    quality: str
+    ats_risk: str
+    issues: List[str]
+    suggestions: List[str]
+    section_score: float
+
+
+class FormattingChecks(BaseModel):
+    formatting_score: float
+    issues: List[str]
+    suggestions: List[str]
+
+
+class BulletAnalysisItem(BaseModel):
+    original_text: str
+    bullet_score: float
+    issues: List[str]
+    improved_text: str
+    is_improvement_accepted: bool = False
+
+
+class KeywordGrouping(BaseModel):
+    matched_required_keywords: List[str]
+    missing_required_keywords: List[str]
+    secondary_keywords: List[str]
+    equivalent_skill_matches: List[Dict[str, str]]  # e.g. {"job_requirement": ..., "candidate_equivalent": ..., "reason": ...}
+    employer_language_to_mirror: List[str]
+    keyword_match_percentage: float
+    explanation: str
+    suggested_section_for_each_missing_keyword: Dict[str, str]
+
+
 class AnalysisResponse(BaseModel):
     id: int
     user_id: int
@@ -115,6 +151,10 @@ class AnalysisResponse(BaseModel):
     score_explanation: Optional[str] = None
     category_scores: Optional[CategoryScores] = None
     top_fixes: Optional[List[TopFix]] = None
+    section_diagnostics: Optional[List[SectionDiagnostic]] = None
+    formatting_checks: Optional[FormattingChecks] = None
+    bullet_analysis: Optional[List[BulletAnalysisItem]] = None
+    keyword_grouping: Optional[KeywordGrouping] = None
     score_breakdown: ScoreBreakdown
     keyword_analysis: KeywordAnalysis
     skill_analysis: SkillAnalysis

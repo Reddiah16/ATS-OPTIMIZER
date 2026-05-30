@@ -44,6 +44,12 @@ class Analysis(Base):
     category_scores = Column(JSON, nullable=True)    # Detailed category breakdown
     top_fixes = Column(JSON, nullable=True)          # Prioritized fixes list
 
+    # Phase 2 new fields
+    section_diagnostics = Column(JSON, nullable=True)
+    formatting_checks = Column(JSON, nullable=True)
+    bullet_analysis = Column(JSON, nullable=True)
+    keyword_grouping = Column(JSON, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

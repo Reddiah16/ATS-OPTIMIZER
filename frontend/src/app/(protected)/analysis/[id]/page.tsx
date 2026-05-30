@@ -19,6 +19,10 @@ import { ScoreBar } from "@/components/ATSScoreGauge";
 import ReadinessBadge from "@/components/ReadinessBadge";
 import CategoryScoreCard from "@/components/CategoryScoreCard";
 import TopFixesPanel from "@/components/TopFixesPanel";
+import SectionDiagnosticsCard from "@/components/SectionDiagnosticsCard";
+import FormattingCheckCard from "@/components/FormattingCheckCard";
+import BulletAnalysisCard from "@/components/BulletAnalysisCard";
+import KeywordGroupCards from "@/components/KeywordGroupCards";
 
 import { Analysis } from "@/types";
 
@@ -458,27 +462,40 @@ export default function AnalysisPage() {
             </motion.div>
           )}
 
-          {/* KEYWORD ANALYSIS */}
+          {/* SECTION DIAGNOSTICS */}
+          {analysis.section_diagnostics && analysis.section_diagnostics.length > 0 && (
+            <motion.div variants={itemVariants}>
+              <SectionDiagnosticsCard diagnostics={analysis.section_diagnostics} />
+            </motion.div>
+          )}
 
-          <motion.div
-            variants={itemVariants}
+          {/* BULLET ANALYSIS */}
+          {analysis.bullet_analysis && analysis.bullet_analysis.length > 0 && (
+            <motion.div variants={itemVariants}>
+              <BulletAnalysisCard bullets={analysis.bullet_analysis} />
+            </motion.div>
+          )}
 
-            className="card p-6"
-          >
+          {/* FORMATTING CHECKS */}
+          {analysis.formatting_checks && (
+            <motion.div variants={itemVariants}>
+              <FormattingCheckCard checks={analysis.formatting_checks} />
+            </motion.div>
+          )}
 
-            <KeywordAnalysis
-              matchedKeywords={
-                ka.matched_keywords
-              }
-
-              missingKeywords={
-                ka.missing_keywords
-              }
-
-              matchPercentage={
-                ka.match_percentage
-              }
-            />
+          {/* KEYWORD ANALYSIS / GROUPING */}
+          <motion.div variants={itemVariants}>
+            {analysis.keyword_grouping ? (
+              <KeywordGroupCards grouping={analysis.keyword_grouping} />
+            ) : (
+              <div className="card p-6">
+                <KeywordAnalysis
+                  matchedKeywords={ka.matched_keywords}
+                  missingKeywords={ka.missing_keywords}
+                  matchPercentage={ka.match_percentage}
+                />
+              </div>
+            )}
           </motion.div>
 
           {/* AI SUGGESTIONS */}
