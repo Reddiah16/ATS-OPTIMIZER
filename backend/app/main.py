@@ -39,11 +39,14 @@ from app.models import User, Resume, Analysis  # noqa
 with engine.connect() as conn:
     try:
         from sqlalchemy import text
+        # Set lock and statement timeouts to 3 seconds so the server startup never hangs due to database locks
+        conn.execute(text("SET statement_timeout = 3000;"))
+        conn.execute(text("SET lock_timeout = 3000;"))
         conn.execute(text("ALTER TABLE analyses ADD COLUMN IF NOT EXISTS semantic_alignment JSON;"))
         conn.commit()
         logger.info("Database migration successful: analyses.semantic_alignment column verified.")
     except Exception as e:
-        logger.debug(f"SQLite or initial database run detected, skipping explicit ALTER TABLE: {e}")
+        logger.warning(f"Database migration skipped or timed out (this is normal on SQLite or locked PostgreSQL): {e}")
 
 Base.metadata.create_all(bind=engine)
 
