@@ -305,7 +305,7 @@ export default function AISuggestions({
               AI-Powered Evaluation
               <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-lg bg-brand-500/10 text-brand-300 border border-brand-500/20 uppercase tracking-widest">PRO</span>
             </span>
-            <p className="text-[10px] text-slate-500 font-medium">Expert feedback generated on-demand by GPT-4</p>
+            <p className="text-[10px] text-slate-500 font-medium">Expert feedback generated on-demand by Llama 3.1</p>
           </div>
         </div>
       </div>

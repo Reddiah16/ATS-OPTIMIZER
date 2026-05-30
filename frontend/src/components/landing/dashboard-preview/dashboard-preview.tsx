@@ -202,7 +202,7 @@ function AISuggestionsSection() {
     <DashboardPanel
       title="AI Suggestions"
       icon={Sparkles}
-      badge="GPT-4"
+      badge="Llama 3.1"
       badgeVariant="ai"
       delay={0.25}
     >

@@ -20,7 +20,7 @@ const features = [
   {
     icon: Brain,
     title: "AI-Powered Suggestions",
-    desc: "GPT-4 rewrites weak bullet points into achievement-focused statements with quantifiable impact.",
+    desc: "Llama 3.1 rewrites weak bullet points into achievement-focused statements with quantifiable impact.",
     color: "text-violet-400",
     bg: "bg-violet-500/10",
   },
@@ -213,7 +213,7 @@ export default function LandingPage() {
             </div>
             ResumeIQ
           </div>
-          <div>Built with FastAPI, Next.js & OpenAI</div>
+          <div>Built with FastAPI, Next.js & Groq API</div>
         </div>
       </footer>
     </div>
