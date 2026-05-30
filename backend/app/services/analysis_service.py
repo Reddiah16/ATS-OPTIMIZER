@@ -10,6 +10,7 @@ from app.schemas.analysis import (
     AnalysisRequest, AnalysisResponse, AnalysisSummary,
     AnalysisHistoryResponse, ScoreBreakdown, KeywordAnalysis,
     SkillAnalysis, AISuggestion, SemanticAlignmentResponse,
+    RescoreRequest, AnalysisComparison,
 )
 from app.services.ats_service import calculate_ats_score
 from app.services.ai_service import AIService
@@ -190,7 +191,7 @@ class AnalysisService:
                 )
             )
 
-        return AnalysisHistoryResponse(analyses=summaries, total=total)
+        return AnalysisHistoryResponse(history=summaries, total=total)
 
     def _build_response(self, analysis: Analysis) -> AnalysisResponse:
         """Convert an Analysis ORM object to AnalysisResponse."""
@@ -244,4 +245,99 @@ class AnalysisService:
             weaknesses=analysis.weaknesses or [],
             semantic_alignment=SemanticAlignmentResponse(**analysis.semantic_alignment) if (hasattr(analysis, "semantic_alignment") and analysis.semantic_alignment) else None,
             created_at=analysis.created_at,
+            parent_analysis_id=analysis.parent_analysis_id,
+            resume_version_id=analysis.resume_version_id,
+        )
+
+    async def rescore_analysis(
+        self, analysis_id: int, request: RescoreRequest, user: User
+    ) -> AnalysisResponse:
+        parent_analysis = self.db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.user_id == user.id).first()
+        if not parent_analysis:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+
+        from app.models.resume import ResumeVersion
+        from app.models.analysis import AppliedSuggestion
+        
+        version = ResumeVersion(resume_id=parent_analysis.resume_id, content=request.resume_text)
+        self.db.add(version)
+        self.db.flush()
+
+        if request.applied_suggestions:
+            for sugg in request.applied_suggestions:
+                app_sugg = AppliedSuggestion(
+                    analysis_id=analysis_id,
+                    suggestion_type="user_action",
+                    original_value=sugg.get("original", ""),
+                    new_value=sugg.get("improved", "")
+                )
+                self.db.add(app_sugg)
+
+        from app.services.ats_service import ATSService
+        ats_service = ATSService()
+        ats_result = ats_service.calculate_ats_score(request.resume_text, parent_analysis.job_description)
+
+        new_analysis = Analysis(
+            user_id=user.id,
+            resume_id=parent_analysis.resume_id,
+            parent_analysis_id=parent_analysis.id,
+            resume_version_id=version.id,
+            job_title=parent_analysis.job_title,
+            job_description=parent_analysis.job_description,
+            ats_score=ats_result["ats_score"],
+            keyword_score=ats_result["keyword_score"],
+            skill_score=ats_result["skill_score"],
+            experience_score=ats_result["experience_score"],
+            formatting_score=ats_result["formatting_score"],
+            matched_keywords=ats_result["matched_keywords"],
+            missing_keywords=ats_result["missing_keywords"],
+            all_job_keywords=ats_result["all_job_keywords"],
+            matched_skills=ats_result["matched_skills"],
+            missing_skills=ats_result["missing_skills"],
+            readiness_label=parent_analysis.readiness_label,
+            score_explanation=parent_analysis.score_explanation,
+            category_scores=parent_analysis.category_scores,
+            top_fixes=parent_analysis.top_fixes,
+            section_diagnostics=parent_analysis.section_diagnostics,
+            formatting_checks=parent_analysis.formatting_checks,
+            bullet_analysis=parent_analysis.bullet_analysis,
+            keyword_grouping=parent_analysis.keyword_grouping,
+            ai_feedback=parent_analysis.ai_feedback,
+            improved_bullets=parent_analysis.improved_bullets,
+            strengths=parent_analysis.strengths,
+            weaknesses=parent_analysis.weaknesses,
+            semantic_alignment=parent_analysis.semantic_alignment
+        )
+        self.db.add(new_analysis)
+        self.db.commit()
+        self.db.refresh(new_analysis)
+
+        return self._build_response(new_analysis)
+
+    def compare_analyses(self, analysis_id: int, other_id: int, user: User) -> AnalysisComparison:
+        new_analysis = self.db.query(Analysis).filter(Analysis.id == analysis_id, Analysis.user_id == user.id).first()
+        old_analysis = self.db.query(Analysis).filter(Analysis.id == other_id, Analysis.user_id == user.id).first()
+        if not new_analysis or not old_analysis:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+
+        from app.schemas.analysis import AnalysisComparison, CategoryDelta
+        
+        overall_delta = new_analysis.ats_score - old_analysis.ats_score
+        
+        category_deltas = [
+            CategoryDelta(
+                category="Keywords",
+                old_score=old_analysis.keyword_score or 0,
+                new_score=new_analysis.keyword_score or 0,
+                delta=(new_analysis.keyword_score or 0) - (old_analysis.keyword_score or 0)
+            )
+        ]
+
+        return AnalysisComparison(
+            old_analysis_id=old_analysis.id,
+            new_analysis_id=new_analysis.id,
+            overall_score_delta=overall_delta,
+            category_deltas=category_deltas,
+            improvements=["Improved ATS Score" if overall_delta > 0 else "Analysis completed"],
+            remaining_issues=["Check missing skills"]
         )

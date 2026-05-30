@@ -115,6 +115,8 @@ export interface Analysis {
   strengths: string[];
   weaknesses: string[];
   created_at: string;
+  parent_analysis_id?: number;
+  resume_version_id?: number;
 }
 
 export interface AnalysisSummary {
@@ -128,7 +130,7 @@ export interface AnalysisSummary {
 }
 
 export interface AnalysisHistoryResponse {
-  analyses: AnalysisSummary[];
+  history: AnalysisSummary[];
   total: number;
 }
 

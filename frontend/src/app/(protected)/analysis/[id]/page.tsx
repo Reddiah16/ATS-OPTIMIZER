@@ -23,6 +23,10 @@ import SectionDiagnosticsCard from "@/components/SectionDiagnosticsCard";
 import FormattingCheckCard from "@/components/FormattingCheckCard";
 import BulletAnalysisCard from "@/components/BulletAnalysisCard";
 import KeywordGroupCards from "@/components/KeywordGroupCards";
+import AnalysisHistoryList from "@/components/AnalysisHistoryList";
+import AnalysisComparisonView from "@/components/AnalysisComparisonView";
+import ScoreDeltaBadge from "@/components/ScoreDeltaBadge";
+import ReScanButton from "@/components/ReScanButton";
 
 import { Analysis } from "@/types";
 
@@ -119,14 +123,12 @@ export default function AnalysisPage() {
   const { id } =
     useParams<{ id: string }>();
 
-  const [analysis, setAnalysis] =
-    useState<Analysis | null>(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState<string | null>(null);
+  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [history, setHistory] = useState<any[]>([]);
+  const [comparison, setComparison] = useState<any>(null);
 
   const fetchAnalysis = () => {
 
@@ -138,16 +140,24 @@ export default function AnalysisPage() {
 
     analysisApi
       .getById(Number(id))
-
-      .then((r) => setAnalysis(r.data))
-
+      .then(async (r) => {
+        setAnalysis(r.data);
+        try {
+          const histRes = await analysisApi.getHistory();
+          if (histRes.data && histRes.data.history) {
+            setHistory(histRes.data.history);
+          }
+          if (r.data.parent_analysis_id) {
+            const compRes = await analysisApi.compareAnalyses(r.data.id, r.data.parent_analysis_id);
+            setComparison(compRes.data);
+          }
+        } catch (err) {
+          console.error("Failed to load history or comparison", err);
+        }
+      })
       .catch((e) => {
-
-        const message =
-          getErrorMessage(e);
-
+        const message = getErrorMessage(e);
         setError(message);
-
         notify.error(message);
       })
 
@@ -274,14 +284,12 @@ export default function AnalysisPage() {
 
               <div className="flex flex-wrap items-center gap-3">
 
-                <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight">
-
-                  {analysis.job_title ||
-                    "ATS Analysis Report"}
+                <h1 className="font-display font-extrabold text-2xl sm:text-3xl text-white tracking-tight flex items-center gap-2">
+                  {analysis.job_title || "ATS Analysis Report"}
+                  {comparison && <ScoreDeltaBadge delta={comparison.overall_score_delta} />}
                 </h1>
 
                 <span className="text-[10px] font-bold tracking-widest bg-brand-500/10 text-brand-400 border border-brand-500/20 px-2.5 py-0.5 rounded-lg uppercase">
-
                   REPORT
                 </span>
 
@@ -331,18 +339,21 @@ export default function AnalysisPage() {
 
             <div className="flex items-center gap-2 flex-wrap">
 
-              <ExportReport
-                analysisId={String(id)}
+              <ReScanButton 
+                analysisId={Number(id)}
+                currentText="This is a mock re-score text assuming user edited the resume via the UI." 
+                onRescoreComplete={(newAnalysis) => {
+                  window.location.href = `/analysis/${newAnalysis.id}`;
+                }}
               />
+
+              <ExportReport analysisId={String(id)} />
 
               <Link
                 href="/upload"
-
                 className="btn-secondary flex items-center gap-2 text-xs font-semibold px-4 py-2.5"
               >
-
                 <RefreshCw size={13} />
-
                 Optimise Another
               </Link>
             </div>
@@ -540,6 +551,17 @@ export default function AnalysisPage() {
 
             ResumeIQ · AI-Powered ATS Optimization
           </motion.p>
+          {/* HISTORY & COMPARISON */}
+          {comparison && (
+            <motion.div variants={itemVariants}>
+              <AnalysisComparisonView comparison={comparison} />
+            </motion.div>
+          )}
+
+          <motion.div variants={itemVariants}>
+            <AnalysisHistoryList history={history} />
+          </motion.div>
+
         </motion.main>
       </div>
     </div>

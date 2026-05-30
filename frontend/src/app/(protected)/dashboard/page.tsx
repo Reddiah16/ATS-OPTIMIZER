@@ -167,7 +167,7 @@ export default function DashboardPage() {
     Promise.all([resumeApi.list(), analysisApi.getHistory(0, 5)])
       .then(([rRes, aRes]) => {
         setResumes(rRes.data.resumes ?? []);
-        setHistory(aRes.data.analyses ?? []);
+        setHistory(aRes.data.history ?? []);
       })
       .catch((e) => {
         const message = getErrorMessage(e);

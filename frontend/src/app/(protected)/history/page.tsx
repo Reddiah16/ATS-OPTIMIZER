@@ -37,7 +37,7 @@ export default function HistoryPage() {
     analysisApi
       .getHistory(page * limit, limit)
       .then((r) => {
-        setAnalyses(r.data.analyses || []);
+        setAnalyses(r.data.history || []);
         setTotal(r.data.total || 0);
       })
       .catch((e) => {

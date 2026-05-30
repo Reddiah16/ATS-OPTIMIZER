@@ -164,6 +164,8 @@ class AnalysisResponse(BaseModel):
     weaknesses: List[str]
     semantic_alignment: Optional[SemanticAlignmentResponse] = None
     created_at: datetime
+    parent_analysis_id: Optional[int] = None
+    resume_version_id: Optional[int] = None
 
     class Config:
         from_attributes = True
@@ -171,17 +173,36 @@ class AnalysisResponse(BaseModel):
 
 class AnalysisSummary(BaseModel):
     id: int
-    job_title: Optional[str]
+    job_title: Optional[str] = None
     ats_score: float
     resume_filename: str
     created_at: datetime
+    parent_analysis_id: Optional[int] = None
+    resume_version_id: Optional[int] = None
     matched_keywords_count: int
     missing_keywords_count: int
 
+class AnalysisHistoryResponse(BaseModel):
+    history: List[AnalysisSummary]
+    total: int
+
+class RescoreRequest(BaseModel):
+    resume_text: str
+    applied_suggestions: Optional[List[Dict[str, str]]] = None
+
+class CategoryDelta(BaseModel):
+    category: str
+    old_score: float
+    new_score: float
+    delta: float
+
+class AnalysisComparison(BaseModel):
+    old_analysis_id: int
+    new_analysis_id: int
+    overall_score_delta: float
+    category_deltas: List[CategoryDelta]
+    improvements: List[str]
+    remaining_issues: List[str]
+
     class Config:
         from_attributes = True
-
-
-class AnalysisHistoryResponse(BaseModel):
-    analyses: List[AnalysisSummary]
-    total: int

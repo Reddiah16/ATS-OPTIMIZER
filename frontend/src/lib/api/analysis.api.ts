@@ -15,4 +15,10 @@ export const analysisApi = {
     api.get<AnalysisHistoryResponse>(
       `/analysis/history?skip=${skip}&limit=${limit}`
     ),
+
+  rescoreAnalysis: (analysisId: number, data: any) =>
+    api.post<Analysis>(`/analysis/${analysisId}/rescore`, data),
+
+  compareAnalyses: (analysisId: number, otherId: number) =>
+    api.get<any>(`/analysis/${analysisId}/compare?other_id=${otherId}`),
 };
