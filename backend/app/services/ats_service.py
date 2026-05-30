@@ -226,28 +226,130 @@ def score_skill_match(
     return round(raw_score, 1), matched, missing
 
 
+def split_into_bullets(text: str) -> List[str]:
+    """
+    Split resume text into individual bullet points / sentences.
+    Handles bullet markers (•, -, *, ▪), numbered lists, and sentence boundaries.
+    """
+    # Split on common bullet markers and newlines
+    lines = re.split(r"[\n\r]+", text)
+    bullets = []
+    for line in lines:
+        line = line.strip()
+        # Remove leading bullet markers
+        line = re.sub(r"^[\•\-\*\▪\►\●\○\◦\➤\→\»]+\s*", "", line)
+        # Remove leading numbered list markers (e.g., "1.", "1)")
+        line = re.sub(r"^\d+[\.\)]\s*", "", line)
+        line = line.strip()
+        if len(line) > 15:  # Skip very short fragments
+            bullets.append(line)
+    return bullets
+
+
+# Strong action verbs that indicate impact-driven experience
+ACTION_VERBS = {
+    "led", "built", "developed", "architected", "designed", "implemented",
+    "improved", "increased", "reduced", "managed", "created", "launched",
+    "optimized", "automated", "deployed", "scaled", "delivered", "achieved",
+    "spearheaded", "orchestrated", "engineered", "established", "transformed",
+    "streamlined", "accelerated", "pioneered", "negotiated", "consolidated",
+    "revamped", "mentored", "directed", "coordinated", "analyzed",
+    "integrated", "migrated", "refactored", "configured", "resolved",
+}
+
+# Regex pattern for quantified metrics (numbers with context)
+METRIC_PATTERN = re.compile(
+    r"\b\d+[\.,]?\d*\s*"
+    r"(%|percent|million|billion|thousand|k\b|\$|users|customers|revenue|"
+    r"clients|requests|transactions|endpoints|apis|services|projects|"
+    r"team\s*members|engineers|developers|hours|minutes|seconds|ms\b|"
+    r"x\b|times|points|reduction|increase|improvement)",
+    re.IGNORECASE,
+)
+
+
+def score_bullet(bullet: str) -> dict:
+    """
+    Score a single bullet point against the Google X-Y-Z formula:
+      'Accomplished [X] as measured by [Y], by doing [Z]'
+
+    Returns a dict with:
+      - has_action_verb: bool
+      - has_metric: bool
+      - is_xyz_bullet: bool (both verb + metric present = strong bullet)
+      - score: float (0.0 to 1.0)
+    """
+    lower = bullet.lower()
+    words = set(re.findall(r"\b[a-z]+\b", lower))
+
+    has_action_verb = bool(words & ACTION_VERBS)
+    has_metric = bool(METRIC_PATTERN.search(bullet))
+
+    # Google X-Y-Z: A bullet is strong when it has BOTH an action verb AND a quantified metric
+    is_xyz = has_action_verb and has_metric
+
+    if is_xyz:
+        bullet_score = 1.0     # Perfect impact bullet
+    elif has_action_verb and not has_metric:
+        bullet_score = 0.4     # Good verb but vague impact
+    elif has_metric and not has_action_verb:
+        bullet_score = 0.3     # Has numbers but passive voice
+    else:
+        bullet_score = 0.1     # Weak / descriptive bullet
+
+    return {
+        "has_action_verb": has_action_verb,
+        "has_metric": has_metric,
+        "is_xyz_bullet": is_xyz,
+        "score": bullet_score,
+    }
+
+
 def score_experience_alignment(resume_text: str, jd_text: str) -> float:
     """
-    Score experience alignment based on quantifiable achievements
-    and experience indicators. Score out of 20.
+    Score experience alignment using syntactic bullet-point analysis
+    based on the Google X-Y-Z formula. Score out of 20.
+
+    Scoring breakdown:
+      - Base score: 4.0
+      - Per-bullet X-Y-Z quality: up to 10.0
+      - Bonus for high X-Y-Z ratio: up to 3.0
+      - Action verb diversity bonus: up to 3.0
     """
-    score = 10.0  # Base score
+    bullets = split_into_bullets(resume_text)
 
-    # Detect quantifiable achievements (numbers, percentages, dollar amounts)
-    quantifiers = re.findall(
-        r"\b\d+[\.,]?\d*\s*(%|percent|million|billion|k\b|\$|users|customers|revenue)",
-        resume_text.lower(),
-    )
-    score += min(5.0, len(quantifiers) * 1.0)
+    if not bullets:
+        return 4.0  # Minimum base for having some text
 
-    # Detect strong action verbs
-    action_verbs = [
-        "led", "built", "developed", "architected", "designed", "implemented",
-        "improved", "increased", "reduced", "managed", "created", "launched",
-        "optimized", "automated", "deployed", "scaled", "delivered", "achieved",
-    ]
-    found_verbs = sum(1 for v in action_verbs if v in resume_text.lower())
-    score += min(5.0, found_verbs * 0.5)
+    # Score each bullet
+    bullet_results = [score_bullet(b) for b in bullets]
+
+    # 1. Base score
+    score = 4.0
+
+    # 2. Average bullet quality (up to 10 points)
+    avg_quality = sum(r["score"] for r in bullet_results) / len(bullet_results)
+    score += round(avg_quality * 10.0, 1)
+
+    # 3. X-Y-Z ratio bonus (up to 3 points)
+    # Reward resumes where a high percentage of bullets follow the X-Y-Z formula
+    xyz_count = sum(1 for r in bullet_results if r["is_xyz_bullet"])
+    xyz_ratio = xyz_count / len(bullet_results)
+    if xyz_ratio >= 0.5:
+        score += 3.0
+    elif xyz_ratio >= 0.3:
+        score += 2.0
+    elif xyz_ratio >= 0.15:
+        score += 1.0
+
+    # 4. Action verb diversity bonus (up to 3 points)
+    # Reward using a variety of strong verbs, not repeating the same one
+    all_used_verbs = set()
+    for bullet in bullets:
+        words = set(re.findall(r"\b[a-z]+\b", bullet.lower()))
+        all_used_verbs.update(words & ACTION_VERBS)
+    diversity_bonus = min(3.0, len(all_used_verbs) * 0.5)
+    score += diversity_bonus
 
     return min(20.0, round(score, 1))
 

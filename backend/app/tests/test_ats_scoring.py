@@ -15,7 +15,10 @@ from app.services.ats_service import (
     compute_cosine_similarity,
     calculate_ats_score,
     extract_keywords,
-    extract_skills
+    extract_skills,
+    split_into_bullets,
+    score_bullet,
+    score_experience_alignment,
 )
 
 class TestATSScoringEngine(unittest.TestCase):
@@ -109,11 +112,63 @@ class TestATSScoringEngine(unittest.TestCase):
         self.assertTrue(0.0 <= res["keyword_score"] <= 35.0)
         self.assertTrue(0.0 <= res["skill_score"] <= 30.0)
         
+        # Assert experience score bounds
+        self.assertTrue(0.0 <= res["experience_score"] <= 20.0)
+        
         print(f"[Full Pipeline Test] Overall ATS Score: {res['ats_score']}/100")
         print(f"  - Keywords: {res['keyword_score']}/35")
         print(f"  - Skills: {res['skill_score']}/30")
         print(f"  - Experience: {res['experience_score']}/20")
         print(f"  - Formatting: {res['formatting_score']}/15")
+
+    def test_xyz_bullet_scoring(self):
+        """Test that Google X-Y-Z bullets score higher than weak/vague bullets."""
+        # Strong X-Y-Z bullet: action verb + quantified metric
+        strong = "Developed 12 RESTful APIs using FastAPI, reducing average response time by 40%"
+        result_strong = score_bullet(strong)
+        self.assertTrue(result_strong["is_xyz_bullet"])
+        self.assertEqual(result_strong["score"], 1.0)
+
+        # Medium bullet: action verb but no metric
+        medium = "Developed backend services using FastAPI and PostgreSQL"
+        result_medium = score_bullet(medium)
+        self.assertTrue(result_medium["has_action_verb"])
+        self.assertFalse(result_medium["has_metric"])
+        self.assertEqual(result_medium["score"], 0.4)
+
+        # Weak bullet: no action verb, no metric
+        weak = "Responsible for backend system maintenance tasks"
+        result_weak = score_bullet(weak)
+        self.assertFalse(result_weak["has_action_verb"])
+        self.assertFalse(result_weak["has_metric"])
+        self.assertEqual(result_weak["score"], 0.1)
+
+        self.assertTrue(result_strong["score"] > result_medium["score"] > result_weak["score"])
+        print(f"\n[X-Y-Z Bullet Test] Strong: {result_strong['score']} | Medium: {result_medium['score']} | Weak: {result_weak['score']}")
+
+    def test_experience_score_comparison(self):
+        """Test that a resume with strong X-Y-Z bullets scores higher than a vague resume."""
+        strong_resume = """
+        Built a microservices platform serving 50000 users daily
+        Reduced API latency by 40% through query optimization
+        Led a team of 8 engineers to deliver 3 major product launches
+        Automated CI/CD pipelines, cutting deployment time by 60%
+        Designed real-time data processing handling 1 million requests per day
+        """
+
+        weak_resume = """
+        Responsible for backend development tasks
+        Worked on various projects involving APIs
+        Participated in team meetings and code reviews
+        Helped with deployment and testing
+        Assisted senior developers with system design
+        """
+
+        strong_score = score_experience_alignment(strong_resume, "")
+        weak_score = score_experience_alignment(weak_resume, "")
+
+        self.assertTrue(strong_score > weak_score)
+        print(f"\n[Experience Comparison] Strong Resume: {strong_score}/20 | Weak Resume: {weak_score}/20")
 
 if __name__ == "__main__":
     unittest.main()
