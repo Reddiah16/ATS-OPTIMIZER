@@ -342,8 +342,8 @@ export default function AnalysisPage() {
               <ReScanButton 
                 analysisId={Number(id)}
                 currentText="This is a mock re-score text assuming user edited the resume via the UI." 
-                onRescoreComplete={(newAnalysis) => {
-                  window.location.href = `/analysis/${newAnalysis.id}`;
+                onRescoreComplete={(response) => {
+                  window.location.href = `/analysis/${response.data.id}`;
                 }}
               />
 
