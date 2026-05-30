@@ -55,8 +55,18 @@ try:
     alembic_cfg = Config("alembic.ini")
     # Suppress alembic's excessive startup logging if needed
     logging.getLogger("alembic").setLevel(logging.WARNING)
-    command.upgrade(alembic_cfg, "head")
-    logger.info("Alembic migrations applied successfully.")
+    try:
+        command.upgrade(alembic_cfg, "head")
+        logger.info("Alembic migrations applied successfully.")
+    except Exception as e:
+        error_str = str(e).lower()
+        if "relation \"users\" already exists" in error_str or "duplicatetable" in error_str:
+            logger.warning("Database was created via create_all. Stamping initial revision and applying missing columns...")
+            command.stamp(alembic_cfg, "001_initial")
+            command.upgrade(alembic_cfg, "head")
+            logger.info("Alembic migrations applied successfully after stamping.")
+        else:
+            raise e
 except Exception as e:
     logger.error(f"Automatic Alembic migrations failed (check logs or run manually): {e}")
 
