@@ -1,166 +1,125 @@
 # ResumeIQ — AI Resume Analyzer & ATS Optimizer
 
-A production-ready, full-stack SaaS application that analyzes resumes against job descriptions using a custom ATS scoring engine, Groq-powered AI feedback, and modern authentication workflows powered by Supabase Auth and Google OAuth.
+[![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![Groq AI](https://img.shields.io/badge/Groq%20AI-F34F29?style=for-the-badge&logo=openai&logoColor=white)](https://groq.com/)
+
+A production-ready, full-stack enterprise SaaS application that parses and analyzes resumes against job descriptions. It leverages a custom **Domain-Weighted TF Cosine Similarity** ATS scoring engine, automated syntactic **Google X-Y-Z Experience** evaluation, asynchronous **Groq-powered AI feedback (Llama 3.1)**, and rigorous **multi-pillar security hardening**.
 
 ---
 
-## Features
+## ✨ Features
 
-- AI-powered ATS resume analysis
-- Keyword and skill matching engine
-- Resume score breakdown visualization
-- AI-generated resume improvement suggestions
-- PDF report export
-- Resume upload with drag-and-drop support
-- Google OAuth authentication
-- Responsive dashboard and analytics UI
-- Analysis history tracking
-- Secure authentication and protected routes
+- 🧠 **AI-Powered Semantic & Logical Alignment**: Evaluates seniority fit (Junior, Mid, Senior, Expert), concept mapping, equivalent skill matching, and competency gaps using Llama 3.1.
+- 📐 **Domain-Weighted TF Cosine Similarity**: Advanced scoring algorithms that prioritize core engineering skills over general verbs, ensuring high fidelity matches.
+- 📊 **Google X-Y-Z Syntactic Bullet Parser**: Syntactically inspects resume experience bullets (*"Accomplished [X] as measured by [Y], by doing [Z]"*) looking for action verbs and quantified impact metrics.
+- 🔒 **Multi-Pillar Security Hardening**: Byte-signature magic number inspection, rate limiting with abnormal brute force monitoring hooks, XSS sanitization, and LLM prompt injection guards.
+- 📂 **Resume Parsing**: Multi-format support (PDF & DOCX) utilizing deep metadata extraction.
+- 🔐 **Sleek Session & Auth Workflow**: Secure registration, email login, and Google OAuth integrations using Supabase Auth and React Context.
+- 📈 **Stunning Interactive Analytics**: Gorgeous radar charts, animated score gauges, and high-performance UI styled with Tailwind CSS and Framer Motion.
+- 📄 **PDF Report Export**: Export complete ATS scoring breakdowns and AI suggestions to structured PDF files.
 
 ---
 
-
-## Tech Stack
+## 🛠️ Tech Stack
 
 | Layer         | Technology                                          |
 |---------------|-----------------------------------------------------|
-| Frontend      | Next.js 14, React 18, TypeScript, Tailwind CSS      |
-| Backend       | FastAPI, Python 3.11, SQLAlchemy 2.0                |
-| Database      | PostgreSQL + Alembic migrations                     |
-| Auth          | Supabase Auth, Google OAuth, JWT session management |
-| AI / NLP      | Groq API (Llama 3), custom NLP keyword engine       |
-| File Parsing  | pdfplumber (PDF), python-docx (DOCX)                |
-| Deployment    | Vercel (frontend) + Render/Railway (backend)        |
+| **Frontend**  | Next.js 14 (App Router), React 18, TypeScript, Tailwind CSS, Framer Motion |
+| **Backend**   | FastAPI, Python 3.11, SQLAlchemy 2.0 (Modern ORM), Alembic |
+| **Database**  | PostgreSQL (Neon Serverless Postgres / Local Docker) |
+| **Auth**      | Supabase Auth, Google OAuth, JWT Session Tracking   |
+| **AI / NLP**  | Groq API (Llama 3.1), AsyncGroq client, Custom NLP Bigram Keyword Engine |
+| **Parsing**   | `pdfplumber` (byte parsing), `python-docx` (XML structure parser) |
 
 ---
 
-## Architecture
+## 📐 Advanced ATS Scoring Engine
+
+The custom engine in `app/services/ats_service.py` evaluates resumes out of **100 total points** across four strictly structured categories:
+
+| Dimension | Weight | Calculation Method |
+| :--- | :---: | :--- |
+| **Keyword Match** | **35 pts** | **Domain-Weighted Cosine Similarity** between resume and JD keyword vectors. Core tech is weighted at `2.0`, tools/platforms at `1.5`, soft skills at `1.0`, and generic terms at `0.5`. |
+| **Skill Match** | **30 pts** | Similarity overlapping of recognized technical and soft skills mapped against a curated 100+ skill taxonomy database (bigrams like `node.js` and `ci/cd` fully supported). |
+| **Experience Quality**| **20 pts** | **Google X-Y-Z bullet evaluation** (*Accomplished [X], measured by [Y], by doing [Z]*). Scores bullet points: perfect impact gets `1.0`, action verb without metric gets `0.4`, passive gets `0.1`. Includes action verb diversity bonuses. |
+| **Formatting** | **15 pts** | Inspects for section headers, email/phone contact information, LinkedIn presence, and length boundaries. |
+
+---
+
+## 🔒 Enterprise-Grade Security Hardening
+
+ResumeIQ is fully hardened against attack vectors, ensuring production integrity:
+1. **Magic Byte Signature Inspection**: Blocks malicious shellcode disguised as documents. The backend verifies the actual starting bytes of the upload (`%PDF-` for PDF, `PK\x03\x04` for DOCX) rather than trusting user-sent file extensions.
+2. **AI Prompt Injection Filtering**: Pre-scans text blocks against instruction overrides (e.g. `ignore previous instructions`, `acting as a role`) to guarantee LLM safety.
+3. **Sliding-Window Rate Limiter**: Throttles anonymous users by client IP and authenticated users via Bearer token. Triggers active security alert logging if traffic exceeds the limit threshold by 2x.
+4. **FastAPI Lock & Statement Timeouts**: Solves database deadlock hangs by applying 3-second statement/lock timeouts during startup Alembic migrations:
+   ```python
+   conn.execute(text("SET statement_timeout = 3000;"))
+   conn.execute(text("SET lock_timeout = 3000;"))
+   ```
+5. **Cross-Site Scripting (XSS) Sanitization**: HTML escapes and script tags are fully stripped before data rendering.
+
+---
+
+## 📂 Architecture
 
 ```
 ats-optimizer/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py                     # FastAPI entry point, middleware, CORS
+│   │   ├── main.py                     # FastAPI entry point & database startup hooks
 │   │   ├── config.py                   # Environment & application settings
 │   │   ├── database/
-│   │   │   └── session.py              # SQLAlchemy database session setup
+│   │   │   └── session.py              # SQLAlchemy database engine
 │   │   ├── middleware/
-│   │   │   └── auth.py                 # Route protection & auth middleware
-│   │   ├── models/                     # SQLAlchemy ORM database models
+│   │   │   └── auth.py                 # Route protection middleware
+│   │   ├── models/                     # SQLAlchemy relational models
 │   │   ├── routers/
-│   │   │   ├── auth.py                 # Authentication & OAuth routes
-│   │   │   ├── resume.py               # Resume upload APIs
-│   │   │   └── analysis.py             # ATS analysis APIs
+│   │   │   ├── auth.py                 # OAuth & credentials registration/login
+│   │   │   ├── resume.py               # Resume upload and file stream parser
+│   │   │   └── analysis.py             # Advanced ATS analysis orchestrator
 │   │   ├── schemas/                    # Pydantic validation schemas
 │   │   ├── services/
-│   │   │   ├── ai_service.py           # Groq Llama 3 AI integration
-│   │   │   ├── ats_service.py          # ATS scoring algorithm
-│   │   │   ├── analysis_service.py     # Full resume analysis pipeline
-│   │   │   ├── auth_service.py         # Supabase auth/session handling
-│   │   │   └── resume_service.py       # Resume parsing & extraction logic
-│   │   └── utils/                      # Shared helper utilities
-│   ├── alembic/                        # PostgreSQL database migrations
-│   ├── uploads/                        # Uploaded resumes storage
-│   ├── Dockerfile                      # Backend containerization
-│   └── render.yaml                     # Render deployment configuration
+│   │   │   ├── ai_service.py           # AsyncGroq logical semantic Llama engine
+│   │   │   ├── ats_service.py          # TF-IDF Cosine Similarity & Google X-Y-Z parser
+│   │   │   └── resume_service.py       # Core pdfplumber text extractors
+│   │   └── utils/
+│   │       ├── security.py             # Signature verifier & prompt injection filter
+│   │       └── rate_limiter.py         # Custom sliding window throttling dependency
+│   ├── alembic/                        # Database version migrations
+│   └── Dockerfile                      # Backend deployment image
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── app/                        # Next.js App Router pages
+│   │   ├── app/                        # Next.js App Router tree
 │   │   ├── components/
-│   │   │   ├── auth/                   # Login/register UI components
-│   │   │   ├── upload/                 # Resume upload workflow components
-│   │   │   ├── ui/                     # Reusable UI primitives
-│   │   │   ├── ATSScoreGauge.tsx       # Animated ATS score visualization
-│   │   │   ├── AISuggestions.tsx       # AI-generated resume feedback
-│   │   │   ├── ExportReport.tsx        # PDF export functionality
-│   │   │   └── ScoreRadarChart.tsx     # Skill/radar analytics chart
+│   │   │   ├── auth/                   # Framer-motion Glassmorphic login forms
+│   │   │   ├── upload/                 # Drag-and-drop file upload zones
+│   │   │   ├── ATSScoreGauge.tsx       # Gauge widget score trackers
+│   │   │   └── ScoreRadarChart.tsx     # Skill radar analytics visualization
 │   │   ├── context/
-│   │   │   └── AuthContext.tsx         # Global authentication state
-│   │   ├── hooks/
-│   │   │   ├── useAuth.ts              # Authentication hook
-│   │   │   └── useAuthRedirect.ts      # Protected route redirection
-│   │   ├── lib/
-│   │   │   ├── api.ts                  # Backend API communication
-│   │   │   ├── supabase.ts             # Supabase client configuration
-│   │   │   └── utils.ts                # Shared frontend utilities
-│   │   └── middleware.ts               # Route-level protection middleware
-│   ├── Dockerfile                      # Frontend containerization
-│   └── vercel.json                     # Vercel deployment configuration
+│   │   │   └── AuthContext.tsx         # Supabase global auth context
+│   │   └── lib/
+│   │       ├── api.ts                  # Axios/Fetch backend communication
+│   │       └── supabase.ts             # Supabase web client init
+│   └── Dockerfile                      # Frontend deployment image
 │
-├── docker-compose.yml                  # Local full-stack container setup
-├── README.md                           # Project documentation
-└── .gitignore                          # Ignored files & secrets
+└── docker-compose.yml                  # Full stack container developer setup
 ```
 
 ---
 
-## ATS Scoring Algorithm
-
-The custom scoring engine in `app/services/ats_service.py` scores resumes on **four dimensions** (100 points total):
-
-| Dimension         | Weight | How it's calculated                                             |
-|-------------------|--------|-----------------------------------------------------------------|
-| Keyword Match     | 35 pts | NLP keyword overlap between resume and job description          |
-| Skill Match       | 30 pts | Recognized tech/soft skills from a curated 100+ skill database  |
-| Experience Quality| 20 pts | Quantifiable achievements (%, $, numbers) + action verb density |
-| Formatting        | 15 pts | Section headers, contact info, length quality, LinkedIn presence |
-
-The engine uses:
-- **Bigram extraction** for multi-word skills (e.g. "node.js", "ci/cd")
-- **Whole-word regex matching** to avoid false positives
-- **Stop word filtering** for 100+ common English words
-- **Tech skills database** across 6 categories (programming, web, data, cloud, tools, soft)
-
----
-
-## AI Features (Groq + Llama 3)
-
-1. **Resume Feedback** — Structured JSON response with:
-   - 3–5 strengths and weaknesses
-   - 4–6 categorized improvement suggestions
-   - 2–4 AI-rewritten bullet points with before/after
-
-2. **Bullet Point Rewriter** — Transforms weak bullets like *"Worked on APIs"* into *"Developed 12 RESTful APIs using FastAPI and PostgreSQL, reducing average response time by 40%"*
-
-
----
-
-## API Reference
-
-### Authentication
-| Method | Endpoint              | Description            |
-|--------|-----------------------|------------------------|
-| POST   | `/api/v1/auth/register` | Register new user      |
-| POST   | `/api/v1/auth/login`    | Login, get JWT token   |
-| GET    | `/api/v1/auth/me`       | Get current user       |
-
-### Resumes
-| Method | Endpoint                    | Description               |
-|--------|-----------------------------|---------------------------|
-| POST   | `/api/v1/resumes/upload`    | Upload PDF/DOCX resume    |
-| GET    | `/api/v1/resumes/`          | List user's resumes       |
-| GET    | `/api/v1/resumes/{id}`      | Get resume by ID          |
-| DELETE | `/api/v1/resumes/{id}`      | Delete resume             |
-
-### Analysis
-| Method | Endpoint                       | Description                     |
-|--------|--------------------------------|---------------------------------|
-| POST   | `/api/v1/analysis/`            | Run full ATS analysis           |
-| GET    | `/api/v1/analysis/history`     | Get paginated history           |
-| GET    | `/api/v1/analysis/{id}`        | Get analysis by ID              |
-
----
-
-## Local Development Setup
+## 🚀 Getting Started
 
 ### Prerequisites
-- Python 3.11+
-- Node.js 20+
-- PostgreSQL (or Docker)
+* Python 3.11+
+* Node.js 20+
+* PostgreSQL (Local or Serverless Neon)
 
-### 1. Backend Setup
-
+### 1. Backend Local Setup
 ```bash
 cd backend
 
@@ -171,177 +130,50 @@ source venv/bin/activate  # Windows: venv\Scripts\activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Copy and fill env vars
+# Configure environment variables
 cp .env.example .env
-# Edit .env: set DATABASE_URL and GROQ_API_KEY
+# Edit .env and supply DATABASE_URL and GROQ_API_KEY
 
-# Run database migrations
+# Perform database migrations
 alembic upgrade head
 
-# Start development server
+# Launch local secure server
 uvicorn app.main:app --reload --port 8000
 ```
+* Swagger Docs live at: `http://localhost:8000/docs`
 
-API docs available at: http://localhost:8000/docs
-
-### 2. Frontend Setup
-
+### 2. Frontend Local Setup
 ```bash
 cd frontend
 
-# Install dependencies
+# Install Node dependencies
 npm install
 
-# Copy env
+# Set up local env variables
 cp .env.local.example .env.local
-# NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+# Set NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 
-# Start dev server
+# Run development hot reload server
 npm run dev
 ```
+* App available live at: `http://localhost:3000`
 
-App available at: http://localhost:3000
-
-### 3. Docker Compose (Full Stack)
-
+### 3. Full-Stack Docker Compose Development
 ```bash
-# From project root
-cp backend/.env.example backend/.env
 # Set GROQ_API_KEY in backend/.env
-
 docker-compose up --build
 ```
 
 ---
 
-## Environment Variables
-
-### Backend (`backend/.env`)
-
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/ats_optimizer
-SECRET_KEY=your-32+-character-secret-key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=1440
-GROQ_API_KEY=gsk-...
-UPLOAD_DIR=uploads
-MAX_FILE_SIZE_MB=10
-FRONTEND_URL=http://localhost:3000
-```
-
-### Frontend (`frontend/.env.local`)
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
-```
-
----
-
-## Deployment
-
-### Frontend → Vercel
-
+## 🧪 Unit Tests
+The project features a lightweight, lightning-fast test suite asserting the mathematical precision of the Cosine Similarity formulas, X-Y-Z bullet logic, input sanitizers, and sliding rate thresholds:
 ```bash
-cd frontend
-npx vercel --prod
-# Set NEXT_PUBLIC_API_URL to your Render/Railway backend URL
-```
-
-### Backend → Render
-
-1. Push to GitHub
-2. Create new Render Web Service, connect repo
-3. Build command: `pip install -r requirements.txt`
-4. Start command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-5. Add environment variables in Render dashboard
-6. Create a PostgreSQL database on Render (free tier) and set `DATABASE_URL`
-
-### Database → Neon (Serverless Postgres)
-
-1. Sign up at neon.tech
-2. Create a new project
-3. Copy the connection string to `DATABASE_URL`
-4. Run migrations: `alembic upgrade head`
-
----
-
-## Security Implementation
-
-- **Supabase Auth + Google OAuth** — Secure authentication and session management
-- **bcrypt password hashing** — salted, work factor 12
-- **Protected routes** — `get_current_user` FastAPI dependency on all auth routes
-- **CORS configuration** — Whitelist-only origins
-- **File validation** — Extension checking + size limiting (10 MB)
-- **SQL injection prevention** — SQLAlchemy ORM parameterized queries
-- **Environment variables** — No secrets in source code
-
----
-
-## Database Schema
-
-```sql
--- Users
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    hashed_password VARCHAR(255) NOT NULL,
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ
-);
-
--- Resumes
-CREATE TABLE resumes (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    filename VARCHAR(255) NOT NULL,          -- stored unique name
-    original_filename VARCHAR(255) NOT NULL, -- user's original name
-    file_path VARCHAR(500) NOT NULL,
-    file_type VARCHAR(10) NOT NULL,          -- 'pdf' or 'docx'
-    extracted_text TEXT,
-    uploaded_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Analyses
-CREATE TABLE analyses (
-    id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    resume_id INTEGER REFERENCES resumes(id) ON DELETE CASCADE,
-    job_title VARCHAR(255),
-    job_description TEXT NOT NULL,
-    ats_score FLOAT NOT NULL,
-    keyword_score FLOAT,
-    skill_score FLOAT,
-    experience_score FLOAT,
-    formatting_score FLOAT,
-    matched_keywords JSON,
-    missing_keywords JSON,
-    all_job_keywords JSON,
-    matched_skills JSON,
-    missing_skills JSON,
-    ai_feedback JSON,
-    improved_bullets JSON,
-    strengths JSON,
-    weaknesses JSON,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+cd backend
+python -m unittest discover -s app/tests
 ```
 
 ---
 
-## Future Enhancements
-
-The architecture is designed to support additional advanced features in future iterations:
-
-- **Skill Gap Analysis** — Recommend learning resources for missing skills
-- **Multi-Resume Comparison** — Compare ATS scores across multiple resumes
-- **Recruiter Dashboard** — Recruiter-side candidate screening workflow
-- **Advanced AI Suggestions** — Personalized resume optimization recommendations
-- **Resume Version Tracking** — Save and compare resume revisions
-
----
-
-## License
-
-MIT — feel free to use this as a portfolio project or extend it.
+## 📄 License
+Distributed under the **MIT License**. Feel free to use and adapt this project for your portfolio!
