@@ -115,6 +115,32 @@ ats-optimizer/
 
 ---
 
+## 🔌 API Reference
+
+### Authentication
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/v1/auth/register` | Register a new user |
+| `POST` | `/api/v1/auth/login` | Log in and receive JWT token |
+| `GET` | `/api/v1/auth/me` | Retrieve current authenticated user profile |
+
+### Resumes
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/v1/resumes/upload` | Upload resume (PDF/DOCX) and parse content |
+| `GET` | `/api/v1/resumes/` | List all resumes belonging to the authenticated user |
+| `GET` | `/api/v1/resumes/{id}` | Retrieve specific resume by ID |
+| `DELETE` | `/api/v1/resumes/{id}` | Permanently delete a resume |
+
+### Analysis & ATS Optimization
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/v1/analysis/` | Execute deep ATS analysis and AI semantic evaluation |
+| `GET` | `/api/v1/analysis/history` | Retrieve paginated resume analysis runs history |
+| `GET` | `/api/v1/analysis/{id}` | Retrieve specific analysis report details by ID |
+
+---
+
 ## 🚀 Getting Started
 
 ### Prerequisites
