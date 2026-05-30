@@ -47,6 +47,19 @@ with engine.connect() as conn:
     except Exception as e:
         logger.warning(f"Database migration skipped or timed out (this is normal on SQLite or locked PostgreSQL): {e}")
 
+try:
+    import logging
+    from alembic.config import Config
+    from alembic import command
+    logger.info("Applying automatic Alembic migrations...")
+    alembic_cfg = Config("alembic.ini")
+    # Suppress alembic's excessive startup logging if needed
+    logging.getLogger("alembic").setLevel(logging.WARNING)
+    command.upgrade(alembic_cfg, "head")
+    logger.info("Alembic migrations applied successfully.")
+except Exception as e:
+    logger.error(f"Automatic Alembic migrations failed (check logs or run manually): {e}")
+
 Base.metadata.create_all(bind=engine)
 
 # ========================
@@ -112,7 +125,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception occurred: {exc}", exc_info=True)
+    logger.exception(f"Unhandled exception occurred: {type(exc).__name__}")
     response = JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content={"detail": "Internal Server Error. An unexpected error occurred. Please contact support or check server logs."},
