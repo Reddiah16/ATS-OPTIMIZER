@@ -119,12 +119,18 @@ async def dynamic_cors_middleware(request: Request, call_next):
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = []
+    error_messages = []
     for error in exc.errors():
         field = " -> ".join(str(loc) for loc in error["loc"])
-        errors.append({"field": field, "message": error["msg"]})
+        msg = error["msg"]
+        errors.append({"field": field, "message": msg})
+        error_messages.append(f"{field}: {msg}")
+    
+    combined_detail = "Validation error: " + ", ".join(error_messages)
+    
     response = JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": "Validation error", "errors": errors},
+        content={"detail": combined_detail, "errors": errors},
     )
     origin = request.headers.get("origin")
     if origin:
